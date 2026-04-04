@@ -2,14 +2,19 @@
   "project": "UI ETL Tool",
   "version": "0.1.0",
   "startedAt": "2026-04-04T08:30:00Z",
-  "phase": "Phase 1: 骨架 + Auth",
-  "stage": "PHASE_1_DONE",
-  "completeness": 20,
-  "currentTask": "Phase 1 骨架 + Auth 完成",
-  "lastUpdated": "2026-04-04T08:59:00Z",
+  "phase": "Phase 2: Pipeline Editor UI + ETL Engine",
+  "stage": "PHASE_2_DONE",
+  "completeness": 50,
+  "currentTask": "Phase 2 Pipeline Editor + ETL Engine 完成",
+  "lastUpdated": "2026-04-04T09:17:00Z",
   "notionPageId": "338be6be-bc27-810b-bb28-e0d9fe78b33a",
   "githubRepo": "pw1131fd0-hub/ui-etl-tool",
   "devLog": [
+    {
+      "timestamp": "2026-04-04T09:17:00Z",
+      "action": "Phase 2 完成",
+      "detail": "Pipeline Editor UI (3-step tab), ETL Worker (Bull Queue), Source/Dest Test APIs, Frontend API 整合"
+    },
     {
       "timestamp": "2026-04-04T08:59:00Z",
       "action": "Phase 1 完成",

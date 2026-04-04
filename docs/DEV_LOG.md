@@ -1,5 +1,45 @@
 # DEV_LOG.md - UI ETL Tool
 
+## Phase 2: Pipeline Editor UI + ETL Engine (2026-04-04)
+
+### Completed Steps
+
+#### Step 1: Pipeline Editor 前端
+- `src/frontend/pages/PipelineEditor.tsx`: 完整 3-step tab editor
+  - Source tab: REST API / CSV 選擇, URL/method/headers/params/responsePath 輸入, CSV 上傳, Fetch Preview
+  - Transform tab: 雙欄 field mapping UI, transform type 選擇 (string/integer/date/trim/lowercase)
+  - Destination tab: PostgreSQL / MySQL 選擇, 連線資訊, table/writeMode, Test Connection
+- `src/frontend/pages/Dashboard.tsx`: 更新連結至 PipelineEditor
+- `src/frontend/App.tsx`: 新增 `/pipelines/new` 和 `/pipelines/:id` routes
+
+#### Step 2: ETL Engine 後端
+- `src/backend/workers/etl.worker.ts`: 完整 ETL worker
+  - Fetch: API (axios + JSON path extraction) / CSV (csv-parse sync)
+  - Transform: field mappings + 型別轉換
+  - Write: PostgreSQL INSERT/UPSERT (ON CONFLICT) / MySQL REPLACE, batch 1000 rows
+  - Result logging: 更新 Run record (inputRows, outputRows, errorMessage, completedAt)
+
+#### Step 3: Job Queue 整合
+- `src/backend/index.ts`: Bull Queue 初始化, Redis URL from env
+- ETL Worker 自動啟動, 處理 etl queue jobs
+
+#### Step 4: API 增補
+- `src/backend/routes/sources.ts`: `POST /api/sources/test` — fetch source preview
+- `src/backend/routes/destinations.ts`: `POST /api/destinations/test` — test DB connection
+- `src/backend/routes/runs.ts`: 更新觸發 Bull ETL job, 支援 legacy route
+
+#### Step 5: 前端 API 整合
+- `src/frontend/api/pipeline.ts`: getPipeline, updatePipeline, testSource, testDestination, triggerRun
+
+#### 依賴更新
+- 安裝: `pg`, `mysql2`
+- 升級: `vite@^8.0.0`, `@vitejs/plugin-react@^4.0.0` (fix build compatibility)
+
+### 驗證結果
+- `npx tsx src/backend/index.ts` → ✅ Server starts, ETL Queue connected
+- `npx vite build` → ✅ 296KB JS, 11.75KB CSS built
+- `npx prisma generate` → ✅ Prisma Client generated
+
 ## Phase 1: 骨架 + Auth (2026-04-04)
 
 ### Completed Steps

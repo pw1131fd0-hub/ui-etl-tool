@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import PipelineEditor from './pages/PipelineEditor'
 import { useAuthStore } from './store/authStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -21,6 +22,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pipelines/new"
+          element={
+            <ProtectedRoute>
+              <PipelineEditor />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pipelines/:id"
+          element={
+            <ProtectedRoute>
+              <PipelineEditor />
             </ProtectedRoute>
           }
         />

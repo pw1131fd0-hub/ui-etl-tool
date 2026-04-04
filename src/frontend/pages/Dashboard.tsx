@@ -41,6 +41,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-900">Pipelines</h2>
           <button
+            onClick={() => navigate('/pipelines/new')}
             className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
           >
             + New Pipeline
@@ -69,7 +70,11 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {pipelines.map((pipeline) => (
-                  <tr key={pipeline.id} className="border-b hover:bg-gray-50">
+                  <tr
+                    key={pipeline.id}
+                    className="border-b hover:bg-gray-50 cursor-pointer"
+                    onClick={() => navigate(`/pipelines/${pipeline.id}`)}
+                  >
                     <td className="px-4 py-3 text-sm text-gray-900">{pipeline.name}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex px-2 py-1 text-xs rounded-full ${

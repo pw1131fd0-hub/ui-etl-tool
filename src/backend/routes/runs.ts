@@ -1,4 +1,5 @@
 import { Router, Response } from 'express'
+import Queue from 'bull'
 import { prisma } from '../config/prisma.js'
 import { authenticate, AuthRequest } from '../middleware/auth.js'
 
@@ -26,7 +27,53 @@ router.get('/pipelines/:id/runs', async (req: AuthRequest, res: Response): Promi
   res.json(runs)
 })
 
-// POST /api/pipelines/:id/run
+// POST /api/runs — trigger pipeline run
+router.post('/runs', async (req: AuthRequest, res: Response): Promise<void> => {
+  const { pipelineId } = req.body
+
+  if (!pipelineId) {
+    res.status(400).json({ error: 'pipelineId is required' })
+    return
+  }
+
+  const pipeline = await prisma.pipeline.findFirst({
+    where: { id: pipelineId, workspaceId: req.workspaceId },
+  })
+
+  if (!pipeline) {
+    res.status(404).json({ error: 'Pipeline not found' })
+    return
+  }
+
+  // Create Run record
+  const run = await prisma.run.create({
+    data: {
+      pipelineId: pipeline.id,
+      status: 'running',
+    },
+  })
+
+  // Enqueue ETL job
+  const etlQueue = req.app.get('etlQueue') as Queue<{
+    pipelineId: string
+    runId: string
+    sourceConfig: Record<string, unknown>
+    transformConfig: Record<string, unknown>
+    destinationConfig: Record<string, unknown>
+  }>
+
+  await etlQueue.add({
+    pipelineId: pipeline.id,
+    runId: run.id,
+    sourceConfig: pipeline.sourceConfig as Record<string, unknown>,
+    transformConfig: pipeline.transformConfig as Record<string, unknown>,
+    destinationConfig: pipeline.destinationConfig as Record<string, unknown>,
+  })
+
+  res.status(202).json({ runId: run.id, status: 'queued' })
+})
+
+// Keep legacy route for backwards compatibility
 router.post('/pipelines/:id/run', async (req: AuthRequest, res: Response): Promise<void> => {
   const pipeline = await prisma.pipeline.findFirst({
     where: { id: req.params.id, workspaceId: req.workspaceId },
@@ -44,23 +91,21 @@ router.post('/pipelines/:id/run', async (req: AuthRequest, res: Response): Promi
     },
   })
 
-  // TODO: Enqueue actual pipeline execution via Bull queue
-  // For now, mark as completed immediately as placeholder
-  setTimeout(async () => {
-    try {
-      await prisma.run.update({
-        where: { id: run.id },
-        data: {
-          status: 'completed',
-          inputRows: 0,
-          outputRows: 0,
-          completedAt: new Date(),
-        },
-      })
-    } catch {
-      // ignore
-    }
-  }, 100)
+  const etlQueue = req.app.get('etlQueue') as Queue<{
+    pipelineId: string
+    runId: string
+    sourceConfig: Record<string, unknown>
+    transformConfig: Record<string, unknown>
+    destinationConfig: Record<string, unknown>
+  }>
+
+  await etlQueue.add({
+    pipelineId: pipeline.id,
+    runId: run.id,
+    sourceConfig: pipeline.sourceConfig as Record<string, unknown>,
+    transformConfig: pipeline.transformConfig as Record<string, unknown>,
+    destinationConfig: pipeline.destinationConfig as Record<string, unknown>,
+  })
 
   res.status(202).json({ runId: run.id, status: 'queued' })
 })
