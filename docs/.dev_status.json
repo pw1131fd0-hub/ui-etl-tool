@@ -1,0 +1,13 @@
+{
+  "project": "UI ETL Tool",
+  "version": "0.1.0",
+  "startedAt": "2026-04-04T08:30:00Z",
+  "phase": "Phase 1: 骨架 + Auth",
+  "stage": "INIT",
+  "completeness": 0,
+  "currentTask": "初始化專案結構 + Docker Compose 環境",
+  "lastUpdated": "2026-04-04T08:30:00Z",
+  "notionPageId": "338be6be-bc27-810b-bb28-e0d9fe78b33a",
+  "githubRepo": "pw1131fd0-hub/ui-etl-tool",
+  "devLog": []
+}
