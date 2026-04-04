@@ -2,14 +2,30 @@
   "project": "UI ETL Tool",
   "version": "0.1.0",
   "startedAt": "2026-04-04T08:30:00Z",
-  "phase": "Phase 2: Pipeline Editor UI + ETL Engine",
-  "stage": "PHASE_2_DONE",
-  "completeness": 50,
-  "currentTask": "Phase 2 Pipeline Editor + ETL Engine 完成",
-  "lastUpdated": "2026-04-04T09:17:00Z",
+  "phase": "Phase 3: Testing + Deployment Hardening",
+  "stage": "IN_PROGRESS",
+  "completeness": 55,
+  "currentTask": "修復部署失敗問題：新增 build:backend 腳本、修正 Queue 型別、安裝 devDependencies",
+  "lastUpdated": "2026-04-04T10:59:00Z",
   "notionPageId": "338be6be-bc27-810b-bb28-e0d9fe78b33a",
   "githubRepo": "pw1131fd0-hub/ui-etl-tool",
+  "deployment_status": {
+    "frontend_build": "✅ SUCCESS",
+    "backend_build": "✅ SUCCESS (esbuild)",
+    "docker_compose": "⏳ 待啟動"
+  },
+  "fixes_completed": [
+    "新增 build:frontend + build:backend 腳本",
+    "使用 esbuild 替代 tsc 編譯後端",
+    "修正 Queue 型別 import 問題",
+    "安裝 devDependencies (@types/pg, esbuild)"
+  ],
   "devLog": [
+    {
+      "timestamp": "2026-04-04T10:59:00Z",
+      "action": "部署修復完成",
+      "detail": "Frontend + Backend 編譯成功，docker:up 待執行"
+    },
     {
       "timestamp": "2026-04-04T09:17:00Z",
       "action": "Phase 2 完成",
@@ -20,5 +36,10 @@
       "action": "Phase 1 完成",
       "detail": "骨架 + Auth 完成，包含後端 Express/Prisma、前端 React/Zustand、Docker Compose、Prisma Schema"
     }
+  ],
+  "next_steps": [
+    "執行 docker:up 啟動 PostgreSQL + Redis",
+    "執行 prisma:generate + prisma:migrate",
+    "驗證部署是否正常運行"
   ]
 }
