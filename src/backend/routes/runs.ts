@@ -1,5 +1,5 @@
 import { Router, Response } from 'express'
-import Queue from 'bull'
+import Queue, { Queue as QueueType } from 'bull'
 import { prisma } from '../config/prisma.js'
 import { authenticate, AuthRequest } from '../middleware/auth.js'
 
@@ -54,7 +54,7 @@ router.post('/runs', async (req: AuthRequest, res: Response): Promise<void> => {
   })
 
   // Enqueue ETL job
-  const etlQueue = req.app.get('etlQueue') as Queue<{
+  const etlQueue = req.app.get('etlQueue') as QueueType<{
     pipelineId: string
     runId: string
     sourceConfig: Record<string, unknown>
@@ -91,7 +91,7 @@ router.post('/pipelines/:id/run', async (req: AuthRequest, res: Response): Promi
     },
   })
 
-  const etlQueue = req.app.get('etlQueue') as Queue<{
+  const etlQueue = req.app.get('etlQueue') as QueueType<{
     pipelineId: string
     runId: string
     sourceConfig: Record<string, unknown>
