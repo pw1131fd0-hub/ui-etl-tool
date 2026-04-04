@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  workspaceId  String    @map("workspace_id")
+  role         String    @default("member")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  workspace    Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@map("users")
+}
+
+model Workspace {
+  id            String     @id @default(uuid())
+  name          String
+  plan          String     @default("free")
+  pipelineLimit Int        @default(1) @map("pipeline_limit")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  users         User[]
+  pipelines     Pipeline[]
+  apiKeys       ApiKey[]
+
+  @@map("workspaces")
+}
+
+model Pipeline {
+  id                String   @id @default(uuid())
+  name              String
+  description       String?
+  workspaceId       String   @map("workspace_id")
+  sourceConfig      Json     @map("source_config")
+  transformConfig   Json     @map("transform_config")
+  destinationConfig Json     @map("destination_config")
+  schedule          String?
+  status            String   @default("inactive")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  workspace         Workspace @relation(fields: [workspaceId], references: [id])
+  runs              Run[]
+
+  @@map("pipelines")
+}
+
+model Run {
+  id           String    @id @default(uuid())
+  pipelineId   String    @map("pipeline_id")
+  status       String    @default("running")
+  inputRows    Int       @default(0) @map("input_rows")
+  outputRows   Int       @default(0) @map("output_rows")
+  errorMessage String?   @map("error_message")
+  startedAt    DateTime  @default(now()) @map("started_at")
+  completedAt  DateTime? @map("completed_at")
+  pipeline     Pipeline  @relation(fields: [pipelineId], references: [id])
+
+  @@map("runs")
+}
+
+model ApiKey {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  name        String
+  keyHash     String   @map("key_hash")
+  createdAt   DateTime @default(now()) @map("created_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@map("api_keys")
+}
