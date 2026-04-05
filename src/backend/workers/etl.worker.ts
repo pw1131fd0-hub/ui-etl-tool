@@ -70,8 +70,17 @@ async function fetchSource(config: SourceConfig): Promise<Record<string, unknown
     }
     return data as Record<string, unknown>[]
   } else if (config.type === 'csv') {
-    if (!config.csvData) throw new Error('No CSV data provided')
-    const records: Record<string, unknown>[] = parse(config.csvData, {
+    let csvText: string
+    if (config.url) {
+      // Fetch CSV from URL
+      const response = await axios.get(config.url, { timeout: 30000 })
+      csvText = typeof response.data === 'string' ? response.data : JSON.stringify(response.data)
+    } else if (config.csvData) {
+      csvText = config.csvData
+    } else {
+      throw new Error('No CSV data or URL provided')
+    }
+    const records: Record<string, unknown>[] = parse(csvText, {
       columns: true,
       skip_empty_lines: true,
       trim: true,
@@ -107,6 +116,10 @@ function transformRow(
   row: Record<string, unknown>,
   mappings: FieldMapping[]
 ): Record<string, unknown> {
+  if (!mappings || mappings.length === 0) {
+    // Pass through all fields as-is when no mappings defined
+    return { ...row }
+  }
   const out: Record<string, unknown> = {}
   for (const m of mappings) {
     const val = applyTransform(row[m.sourceField], m.transform)
@@ -123,7 +136,10 @@ async function writeDestination(
 ): Promise<number> {
   if (rows.length === 0) return 0
 
-  const destFields = mappings.map((m) => m.destField)
+  // When mappings is empty, use the keys from the first row as destFields
+  const destFields = (mappings.length > 0)
+    ? mappings.map((m) => m.destField)
+    : Object.keys(rows[0])
   const placeholders = destFields.map((_, i) => `$${i + 1}`).join(', ')
   const insertCols = destFields.join(', ')
   const upsertCols = destFields.map((f) => `${f} = EXCLUDED.${f}`).join(', ')
