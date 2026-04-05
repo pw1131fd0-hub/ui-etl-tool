@@ -1,26 +1,53 @@
 {
   "project": "UI ETL Tool",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "startedAt": "2026-04-04T08:30:00Z",
   "phase": "Phase 3: Testing + Deployment Hardening",
   "stage": "IN_PROGRESS",
-  "completeness": 55,
-  "currentTask": "修復部署失敗問題：新增 build:backend 腳本、修正 Queue 型別、安裝 devDependencies",
-  "lastUpdated": "2026-04-04T10:59:00Z",
+  "completeness": 70,
+  "currentTask": "Testing + Fixing: Auth JWT, Pipeline CRUD, ETL Run Trigger, Source/Dest APIs",
+  "lastUpdated": "2026-04-05T07:25:00Z",
   "notionPageId": "338be6be-bc27-810b-bb28-e0d9fe78b33a",
   "githubRepo": "pw1131fd0-hub/ui-etl-tool",
   "deployment_status": {
     "frontend_build": "✅ SUCCESS",
-    "backend_build": "✅ SUCCESS (esbuild)",
-    "docker_compose": "⏳ 待啟動"
+    "backend_build": "✅ SUCCESS (tsx dev)",
+    "docker_compose": "✅ RUNNING (PostgreSQL 5433, Redis 6379)",
+    "backend_service": "✅ RUNNING (port 3005)",
+    "frontend_service": "✅ RUNNING (port 5173)"
   },
+  "testing_results": {
+    "auth_register": "✅ PASS - JWT tokens returned correctly",
+    "auth_login": "✅ PASS - JWT tokens returned correctly",
+    "pipeline_create": "✅ PASS - Pipeline created with correct destinationConfig",
+    "pipeline_update": "✅ PASS - destinationConfig stored properly",
+    "pipeline_list": "✅ PASS - Returns pipelines with _count",
+    "pipeline_delete": "✅ PASS - HTTP 204 returned",
+    "etl_run_trigger": "✅ PASS - Run queued, Bull worker processes it",
+    "etl_run_status": "✅ PASS - Run record created with correct status",
+    "source_test_csv": "✅ PASS - CSV parsing works, returns rows + fields",
+    "dest_test_pg": "✅ PASS - PostgreSQL connection verified"
+  },
+  "known_issues": [
+    {
+      "issue": "Backend can crash on DELETE with associated runs",
+      "severity": "medium",
+      "note": "Cascade delete should be verified in Prisma schema - may need explicit onDelete cascade"
+    }
+  ],
   "fixes_completed": [
     "新增 build:frontend + build:backend 腳本",
     "使用 esbuild 替代 tsc 編譯後端",
     "修正 Queue 型別 import 問題",
-    "安裝 devDependencies (@types/pg, esbuild)"
+    "安裝 devDependencies (@types/pg, esbuild)",
+    "Phase 3 testing: Auth, Pipeline CRUD, ETL trigger, Source/Dest APIs all verified"
   ],
   "devLog": [
+    {
+      "timestamp": "2026-04-05T07:25:00Z",
+      "action": "Phase 3 Testing Complete (Phase 3.1)",
+      "detail": "All core APIs verified: Auth JWT ✅, Pipeline CRUD ✅, ETL Run Trigger ✅, Bull Worker ✅, Source/Dest Test ✅"
+    },
     {
       "timestamp": "2026-04-04T10:59:00Z",
       "action": "部署修復完成",
@@ -38,8 +65,10 @@
     }
   ],
   "next_steps": [
-    "執行 docker:up 啟動 PostgreSQL + Redis",
-    "執行 prisma:generate + prisma:migrate",
-    "驗證部署是否正常運行"
+    "Verify Prisma cascade delete for Pipeline → Runs",
+    "Test full ETL flow with real CSV data (not fake URL)",
+    "Test cron schedule trigger",
+    "Frontend browser testing (open frontend, login, create pipeline)",
+    "Docker deployment preparation"
   ]
 }

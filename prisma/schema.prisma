@@ -59,7 +59,7 @@ model Run {
   errorMessage String?   @map("error_message")
   startedAt    DateTime  @default(now()) @map("started_at")
   completedAt  DateTime? @map("completed_at")
-  pipeline     Pipeline  @relation(fields: [pipelineId], references: [id])
+  pipeline     Pipeline  @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
 
   @@map("runs")
 }
