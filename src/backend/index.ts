@@ -1,13 +1,15 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
-import Queue from 'bull'
+import Queue, { Queue as QueueType } from 'bull'
 import authRouter from './routes/auth.js'
 import pipelinesRouter from './routes/pipelines.js'
 import runsRouter from './routes/runs.js'
 import sourcesRouter from './routes/sources.js'
 import destinationsRouter from './routes/destinations.js'
+import apiKeysRouter from './routes/apikeys.js'
 import { startETLWorker } from './workers/etl.worker.js'
+import { initScheduler } from './scheduler.js'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -24,6 +26,7 @@ app.use('/api/pipelines', pipelinesRouter)
 app.use('/api', runsRouter)
 app.use('/api/sources', sourcesRouter)
 app.use('/api/destinations', destinationsRouter)
+app.use('/api/apikeys', apiKeysRouter)
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('[Error]', err.message)
@@ -32,14 +35,24 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 
 // --- Bull ETL Queue ---
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379'
-const etlQueue = new Queue('etl', REDIS_URL)
+const etlQueue = new Queue<{
+  pipelineId: string
+  runId: string
+  sourceConfig: Record<string, unknown>
+  transformConfig: Record<string, unknown>
+  destinationConfig: Record<string, unknown>
+}>('etl', REDIS_URL)
 
-// Expose queue for triggering runs
 app.set('etlQueue', etlQueue)
 
-// Start ETL worker
+// --- Start ETL Worker ---
 startETLWorker(etlQueue).catch((err) => {
   console.error('[ETL Worker] Failed to start:', err)
+})
+
+// --- Start Scheduler ---
+initScheduler(etlQueue).catch((err) => {
+  console.error('[Scheduler] Failed to init:', err)
 })
 
 app.listen(PORT, () => {

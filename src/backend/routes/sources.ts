@@ -6,39 +6,62 @@ import { authenticate, AuthRequest } from '../middleware/auth.js'
 const router = Router()
 router.use(authenticate)
 
+function extractDataPath(data: unknown, responsePath: string): unknown {
+  if (!responsePath) return data
+  const paths = responsePath.split('.').filter(Boolean)
+  for (const p of paths) {
+    if (p.includes('[*]')) {
+      const key = p.replace('[*]', '')
+      data = (data as Record<string, unknown>)?.[key] ?? []
+    } else {
+      data = (data as Record<string, unknown>)?.[p]
+    }
+  }
+  return data
+}
+
+function normalizeToArray(data: unknown): Record<string, unknown>[] {
+  if (Array.isArray(data)) return data
+  if (typeof data === 'object' && data !== null) return [data as Record<string, unknown>]
+  return []
+}
+
 // POST /api/sources/test
 router.post('/test', async (req: AuthRequest, res: Response): Promise<void> => {
-  const { type, url, method, headers, params, responsePath, csvData } = req.body
+  const { type, url, method, headers, params, responsePath, csvData, jsonData } = req.body
 
   try {
-    if (type === 'api') {
-      if (!url) {
-        res.status(400).json({ error: 'URL is required for API source' })
+    if (type === 'api' || type === 'json') {
+      if (!url && !jsonData) {
+        res.status(400).json({ error: 'URL or JSON data is required' })
         return
       }
-      const response = await axios({
-        url,
-        method: method ?? 'GET',
-        headers: headers ?? {},
-        params: params ?? {},
-        timeout: 15000,
-      })
-      let data = response.data
-      if (responsePath) {
-        const paths = responsePath.split('.').filter(Boolean)
-        for (const p of paths) {
-          if (p.includes('[*]')) {
-            const key = p.replace('[*]', '')
-            data = data?.[key] ?? []
-          } else {
-            data = data?.[p]
-          }
+      let responseData: unknown
+      if (url) {
+        const response = await axios({
+          url,
+          method: method ?? 'GET',
+          headers: headers ?? {},
+          params: params ?? {},
+          timeout: 15000,
+        })
+        responseData = response.data
+      } else if (jsonData) {
+        try {
+          responseData = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData
+        } catch {
+          res.status(400).json({ error: 'Invalid JSON data' })
+          return
         }
+      } else {
+        res.status(400).json({ error: 'No data source provided' })
+        return
       }
-      if (!Array.isArray(data)) {
-        data = [data]
-      }
-      const preview = data.slice(0, 5)
+
+      let data = extractDataPath(responseData, responsePath ?? '')
+      data = normalizeToArray(data)
+
+      const preview = (data as Record<string, unknown>[]).slice(0, 5)
       const fields = preview.length > 0 ? Object.keys(preview[0]) : []
       res.json({ rows: preview.map((r: Record<string, unknown>) => fields.map((f) => String(r[f] ?? ''))), fields })
     } else if (type === 'csv') {

@@ -2,8 +2,76 @@ import { Router, Response } from 'express'
 import Queue, { Queue as QueueType } from 'bull'
 import { prisma } from '../config/prisma.js'
 import { authenticate, AuthRequest } from '../middleware/auth.js'
+import bcrypt from 'bcryptjs'
 
 const router = Router()
+
+// Webhook trigger - uses API key auth (no session)
+router.post('/runs/webhook/:key', async (req, res: Response): Promise<void> => {
+  const { key } = req.params
+  const { pipelineId } = req.body
+
+  if (!pipelineId) {
+    res.status(400).json({ error: 'pipelineId is required' })
+    return
+  }
+
+  // Find API key
+  const apiKey = await prisma.apiKey.findFirst({
+    where: {},
+    include: { workspace: true },
+  })
+
+  // Check all API keys
+  const allKeys = await prisma.apiKey.findMany({ include: { workspace: true } })
+  let matchedKey = null
+  for (const k of allKeys) {
+    if (await bcrypt.compare(key, k.keyHash)) {
+      matchedKey = k
+      break
+    }
+  }
+
+  if (!matchedKey) {
+    res.status(401).json({ error: 'Invalid API key' })
+    return
+  }
+
+  const pipeline = await prisma.pipeline.findFirst({
+    where: { id: pipelineId, workspaceId: matchedKey.workspaceId },
+  })
+
+  if (!pipeline) {
+    res.status(404).json({ error: 'Pipeline not found' })
+    return
+  }
+
+  // Create Run record
+  const run = await prisma.run.create({
+    data: {
+      pipelineId: pipeline.id,
+      status: 'running',
+    },
+  })
+
+  const etlQueue = req.app.get('etlQueue') as QueueType<{
+    pipelineId: string
+    runId: string
+    sourceConfig: Record<string, unknown>
+    transformConfig: Record<string, unknown>
+    destinationConfig: Record<string, unknown>
+  }>
+
+  await etlQueue.add({
+    pipelineId: pipeline.id,
+    runId: run.id,
+    sourceConfig: pipeline.sourceConfig as Record<string, unknown>,
+    transformConfig: pipeline.transformConfig as Record<string, unknown>,
+    destinationConfig: pipeline.destinationConfig as Record<string, unknown>,
+  })
+
+  res.status(202).json({ runId: run.id, status: 'queued' })
+})
 
 router.use(authenticate)
 

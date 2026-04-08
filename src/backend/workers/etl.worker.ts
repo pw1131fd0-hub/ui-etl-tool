@@ -3,6 +3,8 @@ import { parse } from 'csv-parse/sync'
 import { PrismaClient } from '@prisma/client'
 import pg from 'pg'
 import mysql from 'mysql2/promise'
+import * as fs from 'fs'
+import * as path from 'path'
 
 const { Pool: PgPool } = pg
 const prisma = new PrismaClient()
@@ -11,41 +13,54 @@ interface FieldMapping {
   id: string
   sourceField: string
   destField: string
-  transform: 'string' | 'integer' | 'date' | 'trim' | 'lowercase'
+  transform: 'string' | 'integer' | 'date' | 'trim' | 'lowercase' | 'uppercase' | 'concat' | 'filter'
+  transformParams?: Record<string, unknown>
+}
+
+interface TransformConfig {
+  mappings: FieldMapping[]
+  filterField?: string
+  filterOperator?: string
+  filterValue?: string
+  sortField?: string
+  sortDirection?: 'asc' | 'desc'
 }
 
 interface SourceConfig {
-  type: 'api' | 'csv'
+  type: 'api' | 'csv' | 'json'
   url?: string
   method?: string
   headers?: Record<string, string>
   params?: Record<string, string>
   responsePath?: string
   csvData?: string
+  jsonData?: string
 }
 
 interface DestinationConfig {
-  type: 'postgresql' | 'mysql'
-  host: string
-  port: number
-  database: string
-  username: string
-  password: string
-  table: string
-  writeMode: 'INSERT' | 'UPSERT'
+  type: 'postgresql' | 'mysql' | 'csv'
+  host?: string
+  port?: number
+  database?: string
+  username?: string
+  password?: string
+  table?: string
+  writeMode?: 'INSERT' | 'UPSERT'
+  csvPath?: string
+  csvDelimiter?: string
 }
 
 interface ETLJob {
   pipelineId: string
   runId: string
   sourceConfig: SourceConfig
-  transformConfig: { mappings: FieldMapping[] }
+  transformConfig: TransformConfig
   destinationConfig: DestinationConfig
 }
 
 // --- Fetch Source ---
 async function fetchSource(config: SourceConfig): Promise<Record<string, unknown>[]> {
-  if (config.type === 'api') {
+  if (config.type === 'api' || config.type === 'json') {
     const response = await axios({
       url: config.url,
       method: config.method ?? 'GET',
@@ -90,8 +105,25 @@ async function fetchSource(config: SourceConfig): Promise<Record<string, unknown
   throw new Error('Unknown source type')
 }
 
+// --- Fetch JSON data inline ---
+async function fetchJsonInline(jsonData: string): Promise<Record<string, unknown>[]> {
+  let data: unknown
+  try {
+    data = JSON.parse(jsonData)
+  } catch {
+    throw new Error('Invalid JSON data')
+  }
+  if (Array.isArray(data)) {
+    return data
+  }
+  if (typeof data === 'object' && data !== null) {
+    return [data as Record<string, unknown>]
+  }
+  throw new Error('JSON data must be an array or object')
+}
+
 // --- Transform ---
-function applyTransform(value: unknown, type: string): unknown {
+function applyTransform(value: unknown, type: string, params?: Record<string, unknown>): unknown {
   if (value === null || value === undefined) return null
   switch (type) {
     case 'integer': {
@@ -106,6 +138,13 @@ function applyTransform(value: unknown, type: string): unknown {
       return String(value).trim()
     case 'lowercase':
       return String(value).toLowerCase()
+    case 'uppercase':
+      return String(value).toUpperCase()
+    case 'concat': {
+      const prefix = (params?.prefix as string) ?? ''
+      const suffix = (params?.suffix as string) ?? ''
+      return prefix + String(value) + suffix
+    }
     case 'string':
     default:
       return String(value)
@@ -122,10 +161,55 @@ function transformRow(
   }
   const out: Record<string, unknown> = {}
   for (const m of mappings) {
-    const val = applyTransform(row[m.sourceField], m.transform)
+    if (m.transform === 'filter') continue
+    const val = applyTransform(row[m.sourceField], m.transform, m.transformParams)
     out[m.destField] = val
   }
   return out
+}
+
+function filterRows(
+  rows: Record<string, unknown>[],
+  filterField: string,
+  filterOperator: string,
+  filterValue: string
+): Record<string, unknown>[] {
+  if (!filterField) return rows
+  return rows.filter((row) => {
+    const fieldVal = String(row[filterField] ?? '')
+    switch (filterOperator) {
+      case 'eq':
+        return fieldVal === filterValue
+      case 'neq':
+        return fieldVal !== filterValue
+      case 'contains':
+        return fieldVal.includes(filterValue)
+      case 'gt':
+        return parseFloat(fieldVal) > parseFloat(filterValue)
+      case 'lt':
+        return parseFloat(fieldVal) < parseFloat(filterValue)
+      case 'gte':
+        return parseFloat(fieldVal) >= parseFloat(filterValue)
+      case 'lte':
+        return parseFloat(fieldVal) <= parseFloat(filterValue)
+      default:
+        return true
+    }
+  })
+}
+
+function sortRows(
+  rows: Record<string, unknown>[],
+  sortField: string,
+  sortDirection: 'asc' | 'desc'
+): Record<string, unknown>[] {
+  if (!sortField) return rows
+  return [...rows].sort((a, b) => {
+    const aVal = String(a[sortField] ?? '')
+    const bVal = String(b[sortField] ?? '')
+    const cmp = aVal.localeCompare(bVal, undefined, { numeric: true })
+    return sortDirection === 'desc' ? -cmp : cmp
+  })
 }
 
 // --- Write Destination ---
@@ -140,6 +224,33 @@ async function writeDestination(
   const destFields = (mappings.length > 0)
     ? mappings.map((m) => m.destField)
     : Object.keys(rows[0])
+
+  // CSV Destination
+  if (config.type === 'csv') {
+    const csvPath = config.csvPath ?? './output.csv'
+    const delimiter = config.csvDelimiter ?? ','
+    const header = destFields.join(delimiter)
+    const csvRows = rows.map((row) =>
+      destFields.map((f) => {
+        const val = row[f] ?? ''
+        const valStr = String(val)
+        // Escape quotes and wrap in quotes if contains delimiter or newline
+        if (valStr.includes(delimiter) || valStr.includes('\n') || valStr.includes('"')) {
+          return `"${valStr.replace(/"/g, '""')}"`
+        }
+        return valStr
+      }).join(delimiter)
+    )
+    const csvContent = [header, ...csvRows].join('\n')
+    // Ensure directory exists
+    const dir = path.dirname(csvPath)
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+    }
+    fs.writeFileSync(csvPath, csvContent, 'utf-8')
+    return rows.length
+  }
+
   const placeholders = destFields.map((_, i) => `$${i + 1}`).join(', ')
   const insertCols = destFields.join(', ')
   const upsertCols = destFields.map((f) => `${f} = EXCLUDED.${f}`).join(', ')
@@ -244,8 +355,19 @@ export async function processETLJob(job: ETLJob): Promise<{ inputRows: number; o
     const rawData = await fetchSource(sourceConfig)
     inputRows = rawData.length
 
-    // Transform
-    const transformed = rawData.map((row) => transformRow(row, mappings))
+    // Transform - filter
+    let transformed = rawData
+    if (transformConfig.filterField) {
+      transformed = filterRows(transformed, transformConfig.filterField, transformConfig.filterOperator ?? 'eq', transformConfig.filterValue ?? '')
+    }
+
+    // Transform - sort
+    if (transformConfig.sortField) {
+      transformed = sortRows(transformed, transformConfig.sortField, transformConfig.sortDirection ?? 'asc')
+    }
+
+    // Transform - field mappings
+    transformed = transformed.map((row) => transformRow(row, mappings))
     outputRows = transformed.length
 
     // Write

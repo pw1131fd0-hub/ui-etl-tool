@@ -1,0 +1,13 @@
+{
+  "active": true,
+  "iteration": 1,
+  "minIterations": 100,
+  "maxIterations": 0,
+  "completionPromise": "COMPLETE",
+  "tasksMode": false,
+  "taskPromise": "READY_FOR_NEXT_TASK",
+  "prompt": "改善這個專案加入更多功能 並且每次結束要對整個專案進行deploy",
+  "startedAt": "2026-04-08T17:06:38.671Z",
+  "model": "",
+  "agent": "claude-code"
+}
