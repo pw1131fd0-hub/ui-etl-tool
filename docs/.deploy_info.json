@@ -1,9 +1,9 @@
 {
-  "deployed_at": "2026-04-09T16:32:00.000Z",
+  "deployed_at": "2026-04-09T13:32:00.000Z",
   "method": "npm dev (tsx backend + vite frontend)",
-  "ports": [3005, 5173],
-  "urls": ["http://localhost:3005", "http://localhost:5173"],
-  "pid_or_container": "backend=1253802, frontend=1253915",
+  "ports": [3005, 3000],
+  "urls": ["http://localhost:3005", "http://localhost:3000"],
+  "pid_or_container": "backend=1523227, frontend=1523356",
   "status": "running",
   "error": null
 }
