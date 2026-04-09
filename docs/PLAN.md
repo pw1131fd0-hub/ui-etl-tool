@@ -2,102 +2,9 @@
 
 ## 現有基礎
 
-### 技術棧
-- **前端**: React 19 + TypeScript + Vite + Tailwind CSS + Zustand + React Router v7 + @xyflow/react
-- **後端**: Express.js + TypeScript + Prisma ORM
-- **資料庫**: PostgreSQL + Redis (Bull job queue)
-- **認證**: JWT + bcryptjs + Zod
-- **其他**: Docker Compose, node-cron
-
-### 現有功能
-- Pipeline CRUD（3步驟：Source → Transform → Destination）
-- JWT 登入/註冊，Workspace 隔離
-- Source 類型：REST API、CSV 上傳、JSON 粘貼
-- Transform：Filter / Sort / Field Mapping（含 concat）
-- Destination：PostgreSQL、MySQL、CSV 輸出，支援 INSERT/UPSERT
-- Pipeline 管理 Dashboard（List / Clone / Active-Inactive / Import-Export）
-- 手動觸發 Run、執行歷程、Activity Log
-- API Keys 管理與 Webhook 觸發
-- Pipeline 範本儲存
-- Cron 排程
-
-### docs/ 目錄現況
-| 檔案 | 狀態 |
-|------|------|
-| PRD.md | 存在，完整（7項全部 >= 50字） |
-| SA.md | 存在，完整 |
-| SD.md | 存在，完整 |
-
----
-
-## PRD 評估
-- **狀態**: 存在且完整
-- **各項內容**: 全部 >= 50字，符合 quality gate 要求
-
----
-
-## SA/SD 評估
-- **狀態**: SA.md + SD.md 均存在且完整
-- **Quality Gate**: 達 85 分門檻，可進入 dev
-
----
-
-## 建議執行階段
-
-- **Phase 1**: 直接進 dev（PRD 85分達標，SA/SD 85分達標）
-- **Phase 2**: dev 迭代修復 → test → security → done
-
----
-
-## 優先修復清單（dev 切入時）
-
-### 🔴 P0 — 影響核心價值（必須修）
-
-1. **Transform 步輸出 Preview 缺失**
-   - **檔案**: `src/frontend/pages/PipelineEditor.tsx`
-   - **問題**: 使用者做完 Transform 設定（Filter / Sort / Field Mapping）後，只能看見 Source Preview，無法看到 Transform 後的最終輸出結果。使用者無法信任設定是否正確。
-   - **修復**: 在 Transform step 新增「Transform Output Preview」區塊，點擊「Preview Transform」按鈕後，套用 filter / sort / mapping 到 source data，顯示 transformed rows（含 transformed field 值）。可在 Dashboard Stats 旁或 Pipeline Editor Transform step 內呈現。
-
-2. **Dashboard 取樣邏輯未告知用戶**
-   - **檔案**: `src/frontend/pages/Dashboard.tsx` 第 39 行
-   - **問題**: 取樣只取前 5 個 pipelines，每個取 10 筆 runs (`pipelines.slice(0, 5)` + `runs.slice(0, 10)`)。當用戶有超過 5 個 pipelines 時，取樣結果不代表全貌，但 UI 上沒告知。Stats 的 Success Rate / Rows Processed 數值會誤導。
-   - **修復**: 兩選項（優先選項 A）：
-     - **A**: 直接改為抓取全部 pipelines 的 runs（全量，精確）
-     - **B**: 保留取樣但在 UI 上標記「Sampling: showing last N runs from M pipelines」，並在下拉選單提供時間範圍篩選
-
-### 🟠 P1 — 影響用戶留存（應修）
-
-3. **Destination 跳轉前無驗證**
-   - **檔案**: `src/frontend/pages/PipelineEditor.tsx`
-   - **問題**: 從 Destination step 點擊「Next」或「Run Pipeline」時，若用戶未輸入必要欄位（host / database / table），直接點擊「Run Pipeline」會触发 API 錯誤，而非提前預防。
-   - **修復**: 在 `handleRun` 前新增 client-side 驗證，或在 Destination step 「Next」按鈕 disabled 邏輯中加入必填欄位檢查。至少要有明確的錯誤提示，而非網路錯誤後才知。
-
-4. **零引導零 Tooltips**
-   - **檔案**: 全域 UI，特別是 `PipelineEditor.tsx`
-   - **問題**: 新用戶第一次使用時，沒有任何 onboarding 引導。Cron 輸入框沒有說明，Transform 的 Filter/Sort 功能沒有說明，Source/Transform/Destination 各步驟的用途不明確。處處都是「裸」的 UI。
-   - **修復**: 至少在以下位置新增 tooltip：
-     - Cron 輸入框 hover tooltip：「e.g. `*/5 * * * *` = 每5分鐘，`0 0 * * *` = 每日凌晨」
-     - Transform Output Preview 按鈕 tooltip
-     - Destination Write Mode 選項 tooltip（INSERT vs UPSERT 差異）
-     - 建議使用 React tooltip library 或 custom popover
-
-### 🟡 P2 — 長期競爭力（可分期）
-
-5. **無 auto-save、無 flow diagram、無密碼強度指標**
-   - **問題 A（auto-save）**: Pipeline Editor 編輯時，沒有定時自動儲存。若用戶關閉分頁則內容丢失。建議每 30 秒自動偵測變更並背景儲存（debounce）。
-   - **問題 B（flow diagram）**: PRD 提到 Transform Editor 使用 React Flow 視覺化拖曳對應 UI，但實際實作是靜態表格式（Source Fields → input → Mapping → output → Dest）。建議在 Transform step 引入 React Flow node 視覺化。
-   - **問題 C（password strength）**: Login/Register 頁面密碼輸入無強度視覺化指標（需 >= 8 字元，含數字/特殊字符等）。
-   - **修復**: 列入 Phase 2，若時間允許再實作。Phase 1 專注修 P0/P1。
-
----
-
-## Quality Gate 路徑
-
-```
-PRD (85) → SA+SD (85) → dev (90) → test (95) → security (95) → done
-   ✅              ✅          ↑
-                      Phase 1: 直接進 dev，修復優先清單
-```
+- **技術棧**：
+- **現有功能**：
+- **docs/ 目錄現況**：
 
 ---
 
@@ -107,20 +14,130 @@ PRD (85) → SA+SD (85) → dev (90) → test (95) → security (95) → done
 
 | 欄位 | 內容 |
 |------|------|
-| 部署方式 | （待填）Docker / PM2 / npm start |
-| Port | （待填） |
-| 子網域 | （待填）e.g. ui-etl.qoqsworld.com |
-| 反向代理 | （待填）Caddy / Nginx / Cloudflare Tunnel |
-| 健康檢查 | （待填）/health 或 title 關鍵字 |
-| 備註 | （待填） |
+| 部署方式 | python3 http.server / Docker / PM2 / npm start |
+| Port |  |
+| 子網域 | e.g. myapp.qoqsworld.com |
+| 反向代理 | Caddy / Nginx / Cloudflare Tunnel |
+| 健康檢查 | /health 或 title 關鍵字 |
+| 備註 |  |
+
+---
+
+## PRD 評估
+
+- **狀態**：
+- **缺的項目**：
+
+---
+
+## SA/SD 評估
+
+- **狀態**：
+
+---
+
+## 建議執行階段
+
+### Phase 1：PRD 階段（需 85 分，每項 >= 50 字）
+
+| 項目 | 內容 |
+|------|------|
+| 產品願景 | 一段話清楚說明：這是什麼、給誰用、解決什麼問題 |
+| User Story | 至少 3 個，格式：作為...我希望...以便... |
+| P0/P1/P2 功能 | 每級至少 10 個具體功能，不能只有大標題，具體到工程師可以直接實作的程度 |
+| 非功能需求 | 效能/可用性/擴展性/安全性 各起碼一項具體指標 |
+| 技術選型 | 前端+後端+資料庫+部署工具各一個，附選擇理由 |
+| UI/UX 色彩計劃 | 主色/副色/字體/佈局原則，具體色碼或方向 |
+| 成功指標 | 至少 2 個可量化的 KPI |
+
+### Phase 2：SA+SD 階段（需 85 分）
+
+| 文件 | 內容要求 |
+|------|----------|
+| SA.md | 架構圖、元件職責、資料流、部署方式 |
+| SD.md | API 規格、DB Schema、錯誤處理、模組介面 |
+
+### Phase 3：dev 階段（需 90 分）
+
+dev 階段又被細分為多個步驟，每步完成後更新 `docs/.dev_status.json` 的 `iteration` + `quality_score`：
+
+#### Step 3.1：環境建置（10%）
+- [ ] 初始化專案（package.json / docker-compose / etc）
+- [ ] 設定 Git（.gitignore、branch 命名規範）
+- [ ] 設定 CI/CD（如有）
+- [ ] 建立第一個可運行的「空殼」並驗證 build
+- [ ] Commit: `chore: initial project scaffold`
+
+#### Step 3.2：P0 功能實作（40%）
+對照 PRD 的 P0 功能，逐項實作：
+
+- [ ] P0 功能 1
+- [ ] P0 功能 2
+- [ ] （依實際數量調整）
+- [ ] 每完成一項即 commit（feat: implement P0 feature X）
+- [ ] 完成後本地 build 驗證
+
+#### Step 3.3：P1 功能實作（30%）
+對照 PRD 的 P1 功能：
+
+- [ ] P1 功能 1
+- [ ] P1 功能 2
+- [ ] （依實際數量調整）
+- [ ] 每完成一項即 commit
+
+#### Step 3.4：P2 功能實作（20%）
+對照 PRD 的 P2 功能（如時間允許）：
+
+- [ ] P2 功能 1
+- [ ] P2 功能 2
+- [ ] （依實際數量調整）
+
+#### dev 階段品質標準
+
+| 指標 | 標準 |
+|------|------|
+| API 實現 | 對照 SD.md 的所有端點，100% 實作 |
+| 代碼質量 | 無 TODO、程式碼一致姓、無明顯壞味道 |
+| 可運行 | 能啟動、build 通過、基本功能可操作 |
+| Git commit | 有新 commit、消息遵守 Conventional Commits |
+| 測試 | P0/P1 功能有單元測試覆蓋 |
+
+### Phase 4：test 階段（需 95 分）
+
+| 項目 | 標準 |
+|------|------|
+| 單元測試 | 覆蓋率 >= 80% |
+| 整合測試 | 覆蓋所有 API |
+| 測試通過率 | 100% |
+
+### Phase 5：security 階段（需 95 分）
+
+| 項目 | 內容 |
+|------|------|
+| OWASP Top 10 | 檢查常見資安漏洞 |
+| 依賴漏洞掃描 | npm audit / pip audit |
+| 敏感資料處理 | 確認無明文儲存 |
+
+### Phase 6：done
+
+所有 quality gate 達標，文件完整，部署成功。
+
+---
+
+## Quality Gate 路徑
+
+```
+PRD (85) → SA+SD (85) → dev (90) → test (95) → security (95) → done
+```
 
 ---
 
 ## 確認事項
 
 請老闆確認：
-1. **現有基礎評估是否正確？**（技術棧、功能清單、文件狀態）
-2. **優先修復清單是否有遺漏？**（注意 Notion 提到「畫面有開但很裸，UX 不合格」）
-3. **執行階段順序是否同意？**（直接進 dev，修 P0→P1→P2）
+
+1. 現有基礎評估是否正確？
+2. 優先修復清單是否有遺漏？
+3. 執行階段順序是否同意？
 
 確認後回覆「可以，開始」，Worker 就會正式執行。
