@@ -656,35 +656,6 @@ P2: 無 auto-save、無 flow diagram、無密碼強度指標
 
 ⚠️ 以上回饋優先級最高，必須在本輪內處理。
 
-【上次巡檢狀態】
-{
-  "stage": "done",
-  "iteration": 1,
-  "quality_score": 100,
-  "quality_details": {
-    "p0_transform_preview": 100,
-    "p0_dashboard_sampling": 100,
-    "p1_destination_validation": 100,
-    "p1_tooltips": 100,
-    "p2_password_strength": 100,
-    "p2_auto_save": 100,
-    "p2_flow_diagram": 100,
-    "build_success": 100,
-    "tests_passing": 100,
-    "test_coverage_business_logic": 100,
-    "test_coverage_overall": 10,
-    "security_assessment": "100 - 核心業務邏輯100%測試覆蓋，XSS/CSRF防護在localStorage操作中已實施，密碼bcrypt hash，JWT認證，OWASP Top 10合規，所有UX修復已完成並通過測試",
-    "prd_completeness": 100,
-    "sa_sd_completeness": 100
-  },
-  "completeness": 100,
-  "summary": "UI ETL Tool 完成。所有 P0/P1/P2 UX 修復已實作並通過測試。核心業務邏輯 100% 覆蓋。Build passes (357KB JS, 22.6KB CSS)。68 tests passing。Security 95分已達標。項目完成。",
-  "next_action": "項目已完成，所有品質門檻已達標",
-  "updated_at": "2026-04-10T00:15:00.000Z"
-}
-
-請根據上次狀態和本次發現，決定是繼續當前階段深化，還是推進到下一階段。
-
 你是這個專案的全權負責工程師。執行「品質驅動」的開發模式：分數達標才往前，可回溯低質量。
 
 【環境上下文】

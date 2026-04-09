@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Database, Globe, FileText, FileJson, ArrowRight, ArrowLeft, CheckCircle, XCircle, Loader2, Plus, Trash2, ChevronRight, Save, Play, Clock, Filter, SortAsc, SortDesc, LayoutTemplate, Download } from 'lucide-react'
+import { Database, Globe, FileText, FileJson, ArrowRight, ArrowLeft, CheckCircle, XCircle, Loader2, Plus, Trash2, ChevronRight, Save, Play, Clock, Filter, SortAsc, SortDesc, LayoutTemplate, Download, HelpCircle } from 'lucide-react'
 import { usePipelineStore } from '../store/pipelineStore'
 import { testSource, testDestination, getPipeline, updatePipeline, triggerRun, createTemplate, exportPipelines } from '../api/pipeline'
 import type { Pipeline } from '../store/pipelineStore'
 import { applyTransform } from '../utils/transformUtils'
 import type { FieldMapping, TransformType, FilterOperator } from '../utils/transformUtils'
+import { Tooltip, InlineHint } from '../components/ui/Tooltip'
 
 type SourceType = 'api' | 'csv' | 'json'
 type DbType = 'postgresql' | 'mysql' | 'csv'
@@ -349,7 +350,19 @@ export default function PipelineEditor() {
                 value={schedule}
                 onChange={(e) => setSchedule(e.target.value)}
                 placeholder="*/5 * * * *"
-                title="Cron schedule format&#10;*/5 * * * * = every 5 minutes&#10;0 0 * * * = daily at midnight&#10;0 * * * * = every hour"
+              />
+              <Tooltip
+                icon="help"
+                content={
+                  <div className="space-y-1">
+                    <div className="font-medium text-white">Cron Schedule Format</div>
+                    <div><span className="text-slate-400">*/5 * * * *</span> — every 5 minutes</div>
+                    <div><span className="text-slate-400">0 * * * *</span> — every hour</div>
+                    <div><span className="text-slate-400">0 0 * * *</span> — daily at midnight</div>
+                    <div><span className="text-slate-400">0 9 * * 1-5</span> — 9am weekdays</div>
+                  </div>
+                }
+                position="bottom"
               />
             </div>
           </div>
@@ -490,7 +503,14 @@ export default function PipelineEditor() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-3 gap-4">
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-slate-300 mb-1.5">URL</label>
+                      <div className="flex items-center gap-2">
+                        <label className="block text-sm font-medium text-slate-300 mb-1.5">URL</label>
+                        <Tooltip
+                          icon="help"
+                          content="The full HTTP endpoint URL. Supports GET, POST, PUT methods. Include authentication tokens in headers if needed."
+                          position="right"
+                        />
+                      </div>
                       <input
                         className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                         placeholder="https://api.example.com/data"
@@ -909,12 +929,23 @@ export default function PipelineEditor() {
                       />
                     </div>
                     <div>
+                      <div className="flex items-center gap-2">
                       <label className="block text-sm font-medium text-slate-300 mb-1.5">Write Mode</label>
+                      <Tooltip
+                        icon="help"
+                        content={
+                          <div className="space-y-1">
+                            <div><span className="text-emerald-400 font-medium">INSERT</span> — adds new rows only. Fails if row already exists.</div>
+                            <div><span className="text-amber-400 font-medium">UPSERT</span> — inserts new rows OR updates existing rows when a conflict is detected on the primary key.</div>
+                          </div>
+                        }
+                        position="left"
+                      />
+                    </div>
                       <select
                         className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                         value={destConfig.writeMode}
                         onChange={(e) => setDestConfig((p) => ({ ...p, writeMode: e.target.value as WriteMode }))}
-                        title="INSERT: adds new rows only&#10;UPSERT: inserts new rows or updates existing rows on conflict"
                       >
                         <option value="INSERT">INSERT</option>
                         <option value="UPSERT">UPSERT (INSERT OR REPLACE)</option>
