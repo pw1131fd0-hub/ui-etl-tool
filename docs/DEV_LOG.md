@@ -176,3 +176,25 @@ UX enrichment complete. Here's what was done:
 - Pipeline cards: Added source type badge (REST/CSV/JSON) to metad
 
 ---
+
+## [2026-04-10 04:57:45] [dev] 100%
+
+Added non-structured data ETL support: nested JSON dot-notation extraction, flatten transform, and auto-flatten option in Pipeline Editor. Users can now handle deeply nested JSON with field mapping like user.profile.name. Build passes (371KB JS, 27KB CSS). All 68 tests passing.
+
+> 已實作完成「非結構化資料 ETL」支援。以下是實作摘要：
+
+## 實作內容
+
+### 1. 後端巢狀 JSON 處理 (`src/backend/routes/sources.ts`)
+- `extractDataPath` 增強：支援 `[*]` 陣列路徑與深層巢狀取值
+- 新增 `flattenObject`：將巢狀物件攤平為點記法欄位（如 `user.profile.name`）
+- 新增 `unflattenObject`：可將攤平的欄位還原為巢狀結構
+- Source Preview API 現在自動回傳 `hasNested` 標記與完整攤平後的欄位
+
+### 2. 後端 Transform 工具 (`src/backend/utils/transform.ts`)
+- 新增 `flattenObject` / `flattenRows`：遞迴攤平所有巢狀物件
+- 新增 `getNestedValue`：透過點記法取得深層欄位值
+- `transformRow` 支援點記法 sourceField（如 `user.profile.name`）
+- `runTransform
+
+---
