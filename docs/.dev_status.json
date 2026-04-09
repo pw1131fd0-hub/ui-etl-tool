@@ -1,102 +1,22 @@
 {
-  "project": "UI ETL Tool",
-  "version": "0.3.0",
-  "startedAt": "2026-04-04T08:30:00Z",
-  "phase": "Phase 3: Testing + Deployment Hardening",
-  "stage": "IN_PROGRESS",
-  "completeness": 80,
-  "currentTask": "Testing + Fixing: CSV URL fetch, empty mappings bug",
-  "lastUpdated": "2026-04-05T07:38:00Z",
-  "notionPageId": "338be6be-bc27-810b-bb28-e0d9fe78b33a",
-  "githubRepo": "pw1131fd0-hub/ui-etl-tool",
-  "deployment_status": {
-    "frontend_build": "✅ SUCCESS",
-    "backend_build": "✅ SUCCESS (tsx dev)",
-    "docker_compose": "✅ RUNNING (PostgreSQL 5433, Redis 6379)",
-    "backend_service": "✅ RUNNING (port 3005)",
-    "frontend_service": "✅ RUNNING (port 5173)"
+  "stage": "dev",
+  "iteration": 1,
+  "quality_score": 30,
+  "quality_details": {
+    "transform_preview_missing": 0,
+    "dashboard_sampling_unlabeled": 0,
+    "destination_validation_missing": 0,
+    "no_tooltips_guidance": 0,
+    "password_strength_indicator": 0,
+    "no_flow_diagram": 0,
+    "no_auto_save": 0,
+    "templates_card_alignment": 0,
+    "activity_log_delete_name": 0,
+    "css_consistency": 50,
+    "build_success": 100
   },
-  "testing_results": {
-    "auth_register": "✅ PASS - JWT tokens returned correctly",
-    "auth_login": "✅ PASS - JWT tokens returned correctly",
-    "pipeline_create": "✅ PASS - Pipeline created with correct destinationConfig",
-    "pipeline_update": "✅ PASS - destinationConfig stored properly",
-    "pipeline_list": "✅ PASS - Returns pipelines with _count",
-    "pipeline_delete": "✅ PASS - HTTP 204, cascade delete (after Prisma db push)",
-    "etl_run_trigger": "✅ PASS - Run queued, Bull worker processes it",
-    "etl_run_status": "✅ PASS - Run record created with correct status",
-    "source_test_csv": "✅ PASS - CSV parsing works, returns rows + fields",
-    "source_test_api": "✅ PASS - API fetching works",
-    "dest_test_pg": "✅ PASS - PostgreSQL connection verified",
-    "etl_full_inline_csv": "✅ PASS - 2 rows fetched, transformed, written to PostgreSQL",
-    "etl_csv_url_fetch": "✅ PASS - CSV URL fetch added (fixed etl.worker.ts)"
-  },
-  "bugs_fixed": [
-    {
-      "bug": "CSV source type with URL not fetching - only csvData was used",
-      "fix": "Added URL fetch logic in fetchSource() when type=csv and url is provided",
-      "file": "src/backend/workers/etl.worker.ts"
-    },
-    {
-      "bug": "transformRow with empty mappings returned {} instead of passthrough",
-      "fix": "Added empty-mappings passthrough: when mappings=[], return {...row}",
-      "file": "src/backend/workers/etl.worker.ts"
-    },
-    {
-      "bug": "writeDestination with empty mappings caused SQL syntax error (empty INSERT columns)",
-      "fix": "Added fallback: when mappings=[], use Object.keys(rows[0]) as destFields",
-      "file": "src/backend/workers/etl.worker.ts"
-    },
-    {
-      "bug": "Prisma cascade delete not applied - Pipeline DELETE failed with FK constraint",
-      "fix": "Added onDelete: Cascade to Run→Pipeline relation, ran prisma db push",
-      "file": "prisma/schema.prisma"
-    },
-    {
-      "bug": "Stale Vite process on port 5173 blocking fresh start",
-      "fix": "Kill old vite before restart, use start-all.sh script",
-      "file": "start-all.sh"
-    }
-  ],
-  "fixes_completed": [
-    "Phase 3.1: Auth, Pipeline CRUD, ETL trigger all verified",
-    "Phase 3.2: CSV URL fetch fix, empty mappings bug fix, cascade delete fix",
-    "Full end-to-end ETL: CSV→Transform→PostgreSQL verified with real data"
-  ],
-  "devLog": [
-    {
-      "timestamp": "2026-04-05T07:38:00Z",
-      "action": "Phase 3.2 Complete - Full ETL E2E verified",
-      "detail": "Inline CSV ETL: 2 rows fetched → transformed → written to PostgreSQL. All bugs fixed."
-    },
-    {
-      "timestamp": "2026-04-05T07:25:00Z",
-      "action": "Phase 3.1 Complete - Core APIs verified",
-      "detail": "Auth JWT ✅, Pipeline CRUD ✅, ETL Run Trigger ✅, Bull Worker ✅, Source/Dest APIs ✅"
-    },
-    {
-      "timestamp": "2026-04-04T10:59:00Z",
-      "action": "部署修復完成",
-      "detail": "Frontend + Backend 編譯成功，docker:up 待執行"
-    },
-    {
-      "timestamp": "2026-04-04T09:17:00Z",
-      "action": "Phase 2 完成",
-      "detail": "Pipeline Editor UI (3-step tab), ETL Worker (Bull Queue), Source/Dest Test APIs, Frontend API 整合"
-    },
-    {
-      "timestamp": "2026-04-04T08:59:00Z",
-      "action": "Phase 1 完成",
-      "detail": "骨架 + Auth 完成，包含後端 Express/Prisma、前端 React/Zustand、Docker Compose、Prisma Schema"
-    }
-  ],
-  "next_steps": [
-    "Frontend browser testing (open frontend, login, create pipeline)",
-    "Test API source type (not just CSV)",
-    "Test UPSERT write mode (not just INSERT)",
-    "Test MySQL destination",
-    "Test cron schedule trigger",
-    "Docker deployment preparation (docker-compose up)",
-    "Git push pending: etl.worker.ts + schema.prisma fixes"
-  ]
+  "completeness": 30,
+  "summary": "PRD 文件已完整（7項全部滿足 >= 50字）。SA/SD 覆蓋完整。11個 UX 缺陷待修，P0 為 Transform 步輸出 Preview",
+  "next_action": "優先修 P0 Transform 步輸出 Preview（PipelineEditor.tsx 新增 Output Preview table），其次修 Dashboard 取樣未告知標註",
+  "updated_at": "2026-04-09T14:30:00.000Z"
 }
