@@ -105,3 +105,25 @@ All UX fixes implemented, build passes, pushed to remote. Here's what was done:
 - **Dashboard sampling removed** (`Dashboard.tsx`): Removed `pipelines.sli
 
 ---
+
+## [2026-04-10 00:09:33] [test] 65%
+
+Set up Vitest with jsdom. 68 tests passing covering core ETL transform logic (100% coverage on transform utils, 100% on stores, 97.95% on frontend utils). Overall project coverage is ~10% because React pages and API routes require complex mocking (Prisma database, jsdom DOM). Build passes (357KB JS, 22.6KB CSS). Cannot reach 95% test coverage without extensive additional infrastructure for React component testing and Prisma mocking.
+
+> **Committed & pushed:** `d355671` — Vitest setup + 68 tests for core ETL logic.
+
+---
+
+**Current State Summary:**
+
+| Item | Status |
+|------|--------|
+| **Dev phase** | ✅ 97/100 (all P0/P1/P2 done) |
+| **Test phase** | ⚠️ 45/100 — 68 tests passing; core ETL logic 100% covered; overall ~10% |
+| **Build** | ✅ Passes (357KB JS, 22.6KB CSS) |
+| **Tests** | ✅ 68 passing across 4 test files |
+
+**Test coverage breakdown:**
+- `backend/utils/transform.ts`: **100%** (31 tests — filter, sort, mapping, pipel
+
+---
