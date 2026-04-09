@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Eye, EyeOff, GitBranch, AlertCircle } from 'lucide-react'
+import { Eye, EyeOff, GitBranch, AlertCircle, Info } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 
 export default function Login() {
@@ -30,7 +30,7 @@ export default function Login() {
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/20 via-slate-900 to-purple-900/20" />
-      
+
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -61,6 +61,10 @@ export default function Login() {
                 required
                 className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm"
               />
+              <p className="text-xs text-slate-600 mt-1.5 flex items-center gap-1">
+                <Info size={11} />
+                Enter the email you used when creating your account
+              </p>
             </div>
 
             <div>
@@ -82,6 +86,10 @@ export default function Login() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              <p className="text-xs text-slate-600 mt-1.5 flex items-center gap-1">
+                <Info size={11} />
+                Case-sensitive. Press eye icon to reveal password
+              </p>
             </div>
 
             <button
@@ -100,14 +108,34 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-slate-400 text-sm">
+          <div className="mt-6 space-y-3">
+            <p className="text-slate-400 text-sm text-center">
               Don't have an account?{' '}
               <Link to="/register" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
                 Create one
               </Link>
             </p>
+            <div className="h-px bg-slate-700/50" />
+            <div className="bg-slate-900/40 rounded-xl p-4 text-center">
+              <p className="text-xs text-slate-500 mb-2">New to UI ETL Tool?</p>
+              <Link
+                to="/register"
+                className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center justify-center gap-1 transition-colors"
+              >
+                Create a free account →
+              </Link>
+              <p className="text-xs text-slate-600 mt-2">
+                No credit card required • 1 free pipeline • 50MB CSV
+              </p>
+            </div>
           </div>
+        </div>
+
+        {/* Footer tip */}
+        <div className="mt-6 text-center">
+          <p className="text-xs text-slate-600">
+            By signing in, you agree to our Terms of Service and Privacy Policy
+          </p>
         </div>
       </div>
     </div>

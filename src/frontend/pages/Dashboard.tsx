@@ -233,7 +233,7 @@ export default function Dashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 group relative">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
               <GitBranch size={18} className="text-indigo-400" />
@@ -241,8 +241,11 @@ export default function Dashboard() {
             <span className="text-slate-400 text-sm">Total Pipelines</span>
           </div>
           <p className="text-3xl font-bold text-white">{pipelines.length}</p>
+          <div className="absolute bottom-2 left-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <p className="text-xs text-slate-600">All pipelines in your workspace</p>
+          </div>
         </div>
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 group relative">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
               <CheckCircle2 size={18} className="text-emerald-400" />
@@ -250,8 +253,11 @@ export default function Dashboard() {
             <span className="text-slate-400 text-sm">Success Rate</span>
           </div>
           <p className="text-3xl font-bold text-white">{successRate}%</p>
+          <div className="absolute bottom-2 left-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <p className="text-xs text-slate-600">Completed runs / Total runs (30d)</p>
+          </div>
         </div>
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 group relative">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
               <TrendingUp size={18} className="text-amber-400" />
@@ -259,8 +265,11 @@ export default function Dashboard() {
             <span className="text-slate-400 text-sm">Rows Processed</span>
           </div>
           <p className="text-3xl font-bold text-white">{totalRowsProcessed.toLocaleString()}</p>
+          <div className="absolute bottom-2 left-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <p className="text-xs text-slate-600">Total rows written to destinations</p>
+          </div>
         </div>
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 group relative">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
               <Play size={18} className="text-purple-400" />
@@ -270,6 +279,9 @@ export default function Dashboard() {
           <p className="text-3xl font-bold text-white">
             {pipelines.filter(p => p.status === 'active').length}
           </p>
+          <div className="absolute bottom-2 left-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <p className="text-xs text-slate-600">Pipelines with scheduled or enabled runs</p>
+          </div>
         </div>
       </div>
 

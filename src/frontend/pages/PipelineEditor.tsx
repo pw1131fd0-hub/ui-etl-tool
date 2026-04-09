@@ -468,8 +468,13 @@ export default function PipelineEditor() {
         {step === 'Source' && (
           <div className="space-y-6">
             <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
-              <h2 className="text-lg font-semibold text-white mb-1">Source Configuration</h2>
-              <p className="text-slate-400 text-sm mb-6">Choose where your data comes from</p>
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-lg font-semibold text-white">Source Configuration</h2>
+                <div className="flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
+                  <span className="text-xs text-indigo-400">Step 1 of 3</span>
+                </div>
+              </div>
+              <p className="text-slate-400 text-sm mt-0.5 mb-6">Choose where your data comes from</p>
 
               <div className="grid grid-cols-3 gap-4 mb-6">
                 {(['api', 'csv', 'json'] as SourceType[]).map((type) => (
@@ -519,7 +524,14 @@ export default function PipelineEditor() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1.5">Method</label>
+                      <div className="flex items-center gap-2">
+                        <label className="block text-sm font-medium text-slate-300 mb-1.5">Method</label>
+                        <Tooltip
+                          icon="help"
+                          content={<div><span className="text-emerald-400">GET</span> — retrieve data<br /><span className="text-amber-400">POST</span> — send data to create<br /><span className="text-blue-400">PUT</span> — update existing data</div>}
+                          position="right"
+                        />
+                      </div>
                       <select
                         className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                         value={sourceConfig.method ?? 'GET'}
@@ -530,7 +542,14 @@ export default function PipelineEditor() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1.5">Response JSON Path</label>
+                    <div className="flex items-center gap-2">
+                      <label className="block text-sm font-medium text-slate-300 mb-1.5">Response JSON Path</label>
+                      <Tooltip
+                        icon="help"
+                        content={<div>Dot-notation path to extract the data array from the API response.<br />Example: <span className="text-indigo-300 font-mono">data.items[*]</span> extracts the <span className="text-indigo-300 font-mono">items</span> array</div>}
+                        position="right"
+                      />
+                    </div>
                     <input
                       className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
                       placeholder="data.items[*]"
@@ -543,20 +562,35 @@ export default function PipelineEditor() {
 
               {sourceConfig.type === 'csv' && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Upload CSV File</label>
+                  <div className="flex items-center gap-2">
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Upload CSV File</label>
+                    <Tooltip
+                      icon="help"
+                      content="Upload a CSV file from your computer. The first row should contain column headers. Maximum recommended size: 50MB for optimal preview performance."
+                      position="right"
+                    />
+                  </div>
                   <input
                     type="file"
                     accept=".csv"
                     onChange={handleCsvUpload}
                     className="block w-full text-sm text-slate-400 file:mr-4 file:py-3 file:px-5 file:rounded-xl file:border-0 file:bg-indigo-500/20 file:text-indigo-400 file:font-medium file:cursor-pointer hover:file:bg-indigo-500/30 transition-all"
                   />
+                  <p className="text-xs text-slate-600 mt-2">Supports .csv files with header row • UTF-8 encoding</p>
                 </div>
               )}
 
               {sourceConfig.type === 'json' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Upload JSON File</label>
+                    <div className="flex items-center gap-2">
+                      <label className="block text-sm font-medium text-slate-300 mb-2">Upload JSON File</label>
+                      <Tooltip
+                        icon="help"
+                        content="Upload a JSON file containing an array of objects. Each object represents one row of data."
+                        position="right"
+                      />
+                    </div>
                     <input
                       type="file"
                       accept=".json"
@@ -565,7 +599,14 @@ export default function PipelineEditor() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1.5">Or paste JSON data</label>
+                    <div className="flex items-center gap-2">
+                      <label className="block text-sm font-medium text-slate-300 mb-1.5">Or paste JSON data</label>
+                      <Tooltip
+                        icon="help"
+                        content={"Paste a JSON array directly, e.g. [{\"name\": \"John\", \"age\": 30}]"}
+                        position="right"
+                      />
+                    </div>
                     <textarea
                       className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono h-32"
                       placeholder='[{"name": "John", "age": 30}]'
@@ -583,11 +624,20 @@ export default function PipelineEditor() {
               >
                 {loading ? <><Loader2 size={16} className="animate-spin" /> Fetching...</> : 'Fetch Preview'}
               </button>
+              {sourceFields.length > 0 && (
+                <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
+                  <CheckCircle size={12} />
+                  Found {sourceFields.length} fields — data is ready to preview
+                </p>
+              )}
             </div>
 
             {previewData.length > 0 && (
               <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
-                <h3 className="text-sm font-medium text-slate-300 mb-3">Preview ({previewData.length} rows)</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-slate-300">Preview ({previewData.length} rows)</h3>
+                  <p className="text-xs text-slate-500">First 5 rows from your data source</p>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -616,12 +666,25 @@ export default function PipelineEditor() {
         {/* TRANSFORM STEP */}
         {step === 'Transform' && (
           <div className="space-y-6">
+            {/* Step indicator */}
+            <div className="flex items-center justify-between">
+              <div></div>
+              <div className="flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
+                <span className="text-xs text-indigo-400">Step 2 of 3</span>
+              </div>
+            </div>
+
             {/* Filter & Sort */}
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Filter size={16} className="text-amber-400" />
                   <h3 className="text-sm font-medium text-slate-300">Filter Rows</h3>
+                  <Tooltip
+                    icon="help"
+                    content="Filter removes rows that don't match your criteria before writing to destination. Example: keep only rows where status equals 'active'."
+                    position="right"
+                  />
                 </div>
                 <div className="space-y-3">
                   <select
@@ -664,6 +727,11 @@ export default function PipelineEditor() {
                 <div className="flex items-center gap-2 mb-4">
                   {sortDirection === 'asc' ? <SortAsc size={16} className="text-emerald-400" /> : <SortDesc size={16} className="text-emerald-400" />}
                   <h3 className="text-sm font-medium text-slate-300">Sort Output</h3>
+                  <Tooltip
+                    icon="help"
+                    content="Sort orders the output rows before writing. Ascending (A→Z, 1→9), Descending (Z→A, 9→1). Applied after filtering."
+                    position="right"
+                  />
                 </div>
                 <div className="space-y-3">
                   <select
@@ -727,7 +795,14 @@ export default function PipelineEditor() {
               </div>
 
               <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
-                <h3 className="text-sm font-medium text-slate-300 mb-4">Field Mappings</h3>
+                <div className="flex items-center gap-2 mb-4">
+                  <h3 className="text-sm font-medium text-slate-300">Field Mappings</h3>
+                  <Tooltip
+                    icon="help"
+                    content="Map source fields to destination columns. Each mapping transforms the data from its original format to your target schema."
+                    position="right"
+                  />
+                </div>
                 {transformMappings.length === 0 && (
                   <p className="text-sm text-slate-600 py-8 text-center">Click "Map" on source fields</p>
                 )}
@@ -831,8 +906,13 @@ export default function PipelineEditor() {
         {step === 'Destination' && (
           <div className="space-y-6">
             <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
-              <h2 className="text-lg font-semibold text-white mb-1">Destination Configuration</h2>
-              <p className="text-slate-400 text-sm mb-6">Configure your data destination</p>
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-lg font-semibold text-white">Destination Configuration</h2>
+                <div className="flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
+                  <span className="text-xs text-indigo-400">Step 3 of 3</span>
+                </div>
+              </div>
+              <p className="text-slate-400 text-sm mt-0.5 mb-6">Configure your data destination</p>
 
               <div className="flex gap-3 mb-6">
                 {(['postgresql', 'mysql', 'csv'] as DbType[]).map((type) => (
