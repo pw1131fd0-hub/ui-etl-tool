@@ -84,6 +84,8 @@ export default function PipelineEditor() {
   const [error, setError] = useState<string | null>(null)
   const [testStatus, setTestStatus] = useState<{ ok: boolean; msg: string } | null>(null)
   const [pipeline, setPipeline] = useState<Pipeline | null>(null)
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null)
 
   // Transform config
   const [filterField, setFilterField] = useState('')
@@ -116,6 +118,34 @@ export default function PipelineEditor() {
       }).catch(console.error)
     }
   }, [isNew, id])
+
+  // Auto-save: debounced auto-save after changes (only for existing pipelines)
+  useEffect(() => {
+    if (!pipeline?.id || isNew) return
+    setAutoSaveStatus('idle')
+    const timer = setTimeout(async () => {
+      setAutoSaveStatus('saving')
+      try {
+        const transformConfig: TransformConfig = {
+          mappings: transformMappings,
+          filterField: filterField || undefined,
+          filterOperator: filterField ? filterOperator : undefined,
+          filterValue: filterField ? filterValue : undefined,
+          sortField: sortField || undefined,
+          sortDirection: sortField ? sortDirection : undefined,
+        }
+        const payload = { name, description, schedule: schedule || null, sourceConfig, transformConfig, destinationConfig: destConfig }
+        await updatePipeline(pipeline.id, payload)
+        setAutoSaveStatus('saved')
+        setLastAutoSave(new Date())
+        setTimeout(() => setAutoSaveStatus('idle'), 3000)
+      } catch {
+        setAutoSaveStatus('error')
+        setTimeout(() => setAutoSaveStatus('idle'), 3000)
+      }
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [name, description, schedule, sourceConfig, destConfig, transformMappings, filterField, filterOperator, filterValue, sortField, sortDirection])
 
   const handleFetchPreview = async () => {
     setLoading(true)
@@ -417,6 +447,69 @@ export default function PipelineEditor() {
                 )}
               </div>
             ))}
+          </div>
+
+          {/* Pipeline Flow Diagram */}
+          <div className="mt-4 flex items-center gap-3 flex-wrap">
+            {/* Source Node */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/80 border border-slate-700/50 rounded-xl">
+              <div className={`w-2 h-2 rounded-full ${sourceFields.length > 0 ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+              <Globe size={14} className={sourceConfig.type === 'api' ? 'text-indigo-400' : sourceConfig.type === 'csv' ? 'text-purple-400' : 'text-amber-400'} />
+              <span className="text-xs font-medium text-white">
+                {sourceConfig.type === 'api' ? (sourceConfig.url ? new URL(sourceConfig.url).hostname : 'API') : sourceConfig.type.toUpperCase()}
+              </span>
+              {sourceFields.length > 0 && (
+                <span className="text-xs text-slate-500">{sourceFields.length} fields</span>
+              )}
+            </div>
+
+            <ArrowRight size={14} className="text-slate-600" />
+
+            {/* Transform Node */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/80 border border-slate-700/50 rounded-xl">
+              <div className={`w-2 h-2 rounded-full ${transformMappings.length > 0 ? 'bg-indigo-400' : 'bg-slate-600'}`} />
+              <FileText size={14} className="text-indigo-400" />
+              <span className="text-xs font-medium text-white">
+                {transformMappings.length > 0 ? `${transformMappings.length} mapping${transformMappings.length > 1 ? 's' : ''}` : 'Transform'}
+              </span>
+              {(filterField || sortField) && (
+                <span className="text-xs text-slate-500">
+                  {[filterField && 'filter', sortField && 'sort'].filter(Boolean).join('+')}
+                </span>
+              )}
+            </div>
+
+            <ArrowRight size={14} className="text-slate-600" />
+
+            {/* Destination Node */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/80 border border-slate-700/50 rounded-xl">
+              <div className={`w-2 h-2 rounded-full ${destConfig.table ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+              <Database size={14} className="text-emerald-400" />
+              <span className="text-xs font-medium text-white">
+                {destConfig.type === 'postgresql' ? 'PostgreSQL' : destConfig.type === 'mysql' ? 'MySQL' : 'CSV'}
+              </span>
+              {destConfig.table && (
+                <span className="text-xs text-slate-500 font-mono">{destConfig.table}</span>
+              )}
+            </div>
+
+            {/* Auto-save status */}
+            {pipeline?.id && (
+              <div className="ml-auto flex items-center gap-2 text-xs">
+                {autoSaveStatus === 'saving' && (
+                  <><Loader2 size={12} className="animate-spin text-slate-500" /><span className="text-slate-500">Saving...</span></>
+                )}
+                {autoSaveStatus === 'saved' && (
+                  <><CheckCircle size={12} className="text-emerald-400" /><span className="text-emerald-400">Saved</span></>
+                )}
+                {autoSaveStatus === 'error' && (
+                  <><XCircle size={12} className="text-red-400" /><span className="text-red-400">Save failed</span></>
+                )}
+                {autoSaveStatus === 'idle' && lastAutoSave && (
+                  <span className="text-slate-600">Last saved {lastAutoSave.toLocaleTimeString()}</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
