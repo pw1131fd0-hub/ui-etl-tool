@@ -327,3 +327,29 @@ UI ETL Tool 项目已完成。所有 P0/P1/P2 功能已实现：Transform Output
 
 
 ---
+
+## [2026-04-10 07:31:12] [done] 100%
+
+UI ETL Tool 项目已完成。所有 P0/P1/P2 功能已实现：Transform Output Preview、Dashboard 取样修复、Destination 验证、Tooltips 引导、Password 强度指标、Auto-save、Flow Diagram、非结构化数据 ETL（嵌套 JSON 点记法提取、flatten transform）。68 tests passing。Build passes (371KB JS, 27KB CSS)。npm audit: 0 vulnerabilities。
+
+> 
+
+`.dev_status.json` 已恢復並推送。
+
+**專案狀態：已完成 ✅**
+
+所有功能已實作並通過品質門檻：
+- P0: Transform 步輸出 Preview
+- P0: Dashboard 取樣修復
+- P1: Destination 跳轉前驗證
+- P1: Tooltips 引導
+- P2: Auto-save、Flow Diagram、Password 強度指標
+- **P0: 非結構化資料 ETL**（嵌套 JSON 點記法提取 + flatten transform）
+
+驗證結果：
+- 68 tests passing
+- Build passes (371KB JS, 27KB CSS)
+- npm audit: 0 vulnerabilities
+
+
+---
