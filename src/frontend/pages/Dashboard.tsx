@@ -153,10 +153,11 @@ export default function Dashboard() {
 
   // Stats calculations
   const totalRuns = recentRuns.length
-  const successfulRuns = recentRuns.filter(r => r.status === 'completed').length
+  const successfulRuns = recentRuns.filter(r => r.status === 'success').length
   const failedRuns = recentRuns.filter(r => r.status === 'failed').length
   const successRate = totalRuns > 0 ? Math.round((successfulRuns / totalRuns) * 100) : 0
   const totalRowsProcessed = recentRuns.reduce((sum, r) => sum + r.outputRows, 0)
+  const lastRunAt = recentRuns[0] ? new Date(recentRuns[0].startedAt) : null
 
   return (
     <div className="min-h-screen p-8">
@@ -167,6 +168,9 @@ export default function Dashboard() {
             {workspace?.name ?? 'Dashboard'}
           </h1>
           <p className="text-slate-400 text-sm">Welcome back, {user?.email}</p>
+          {lastRunAt && (
+            <p className="text-xs text-slate-600 mt-0.5">Last run {lastRunAt.toLocaleString()}</p>
+          )}
         </div>
         <div className="flex items-center gap-3">
           {batchMode ? (
@@ -233,55 +237,47 @@ export default function Dashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 group relative">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
               <GitBranch size={18} className="text-indigo-400" />
             </div>
             <span className="text-slate-400 text-sm">Total Pipelines</span>
           </div>
-          <p className="text-3xl font-bold text-white">{pipelines.length}</p>
-          <div className="absolute bottom-2 left-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <p className="text-xs text-slate-600">All pipelines in your workspace</p>
-          </div>
+          <p className="text-3xl font-bold text-white mb-1">{pipelines.length}</p>
+          <p className="text-xs text-slate-600">All pipelines in your workspace</p>
         </div>
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 group relative">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
               <CheckCircle2 size={18} className="text-emerald-400" />
             </div>
             <span className="text-slate-400 text-sm">Success Rate</span>
           </div>
-          <p className="text-3xl font-bold text-white">{successRate}%</p>
-          <div className="absolute bottom-2 left-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <p className="text-xs text-slate-600">Completed runs / Total runs (30d)</p>
-          </div>
+          <p className="text-3xl font-bold text-white mb-1">{successRate}%</p>
+          <p className="text-xs text-slate-600">Completed runs / Total runs (30d)</p>
         </div>
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 group relative">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
               <TrendingUp size={18} className="text-amber-400" />
             </div>
             <span className="text-slate-400 text-sm">Rows Processed</span>
           </div>
-          <p className="text-3xl font-bold text-white">{totalRowsProcessed.toLocaleString()}</p>
-          <div className="absolute bottom-2 left-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <p className="text-xs text-slate-600">Total rows written to destinations</p>
-          </div>
+          <p className="text-3xl font-bold text-white mb-1">{totalRowsProcessed.toLocaleString()}</p>
+          <p className="text-xs text-slate-600">Total rows written to destinations</p>
         </div>
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 group relative">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
               <Play size={18} className="text-purple-400" />
             </div>
-            <span className="text-slate-400 text-sm">Active</span>
+            <span className="text-slate-400 text-sm">Active Pipelines</span>
           </div>
-          <p className="text-3xl font-bold text-white">
+          <p className="text-3xl font-bold text-white mb-1">
             {pipelines.filter(p => p.status === 'active').length}
           </p>
-          <div className="absolute bottom-2 left-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <p className="text-xs text-slate-600">Pipelines with scheduled or enabled runs</p>
-          </div>
+          <p className="text-xs text-slate-600">Pipelines with enabled runs</p>
         </div>
       </div>
 
@@ -308,19 +304,26 @@ export default function Dashboard() {
       )}
 
       {!loading && pipelines.length === 0 && (
-        <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-16 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-slate-700/50 flex items-center justify-center mx-auto mb-4">
-            <GitBranch size={28} className="text-slate-500" />
+        <div className="bg-slate-800/20 border border-slate-700/30 rounded-2xl p-16 text-center">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto mb-6">
+            <GitBranch size={36} className="text-indigo-400" />
           </div>
-          <h3 className="text-slate-300 font-medium mb-2">No pipelines yet</h3>
-          <p className="text-slate-500 text-sm mb-6">Create your first ETL pipeline to get started</p>
-          <button
-            onClick={() => navigate('/pipelines/new')}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-500 text-white rounded-xl text-sm font-medium hover:bg-indigo-600 transition-all"
-          >
-            <Plus size={16} />
-            Create Pipeline
-          </button>
+          <h3 className="text-slate-200 text-xl font-semibold mb-3">No pipelines yet</h3>
+          <p className="text-slate-500 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
+            Build your first ETL pipeline in minutes. Connect any REST API or CSV, transform data with filters and field mappings, then write to your database.
+          </p>
+          <div className="flex flex-col items-center gap-4">
+            <button
+              onClick={() => navigate('/pipelines/new')}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl text-sm font-medium hover:from-indigo-600 hover:to-purple-600 transition-all shadow-lg shadow-indigo-500/25"
+            >
+              <Plus size={18} />
+              Create Your First Pipeline
+            </button>
+            <p className="text-xs text-slate-600">
+              Need help? Try the Templates page for pre-built pipelines →
+            </p>
+          </div>
         </div>
       )}
 
@@ -354,6 +357,13 @@ export default function Dashboard() {
                     <div>
                       <h3 className="text-white font-medium mb-0.5">{pipeline.name}</h3>
                       <div className="flex items-center gap-3 text-xs text-slate-500">
+                        {(pipeline.sourceConfig as any)?.type && (
+                          <span className="flex items-center gap-1 text-slate-400">
+                            {((pipeline.sourceConfig as any).type === 'api') ? '🌐 REST' :
+                             (pipeline.sourceConfig as any).type === 'csv' ? '📄 CSV' : '📋 JSON'}
+                            {(pipeline.sourceConfig as any).type}
+                          </span>
+                        )}
                         {pipeline.schedule && (
                           <span className="flex items-center gap-1">
                             <Clock size={12} />

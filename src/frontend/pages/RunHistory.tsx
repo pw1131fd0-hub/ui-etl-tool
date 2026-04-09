@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, CheckCircle, XCircle, Clock, Loader2, Database, RefreshCw } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Clock, Loader2, Database, RefreshCw, Play } from 'lucide-react'
 import api from '../api/index'
 
 interface Run {
@@ -128,10 +128,21 @@ export default function RunHistory() {
 
       {/* Empty */}
       {!loading && runs.length === 0 && (
-        <div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-16 text-center">
-          <Clock size={40} className="text-slate-600 mx-auto mb-4" />
-          <h3 className="text-slate-300 font-medium mb-2">No runs yet</h3>
-          <p className="text-slate-500 text-sm">Run this pipeline to see execution history</p>
+        <div className="bg-slate-800/20 border border-slate-700/30 rounded-2xl p-16 text-center">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-6">
+            <Clock size={36} className="text-blue-400" />
+          </div>
+          <h3 className="text-slate-200 text-xl font-semibold mb-3">No runs yet</h3>
+          <p className="text-slate-500 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
+            This pipeline hasn't been executed yet. Configure your Source, Transform, and Destination steps, then run it to see history here.
+          </p>
+          <Link
+            to={`/pipelines/${id}`}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-500 text-white rounded-xl text-sm font-medium hover:bg-indigo-600 transition-all"
+          >
+            <Play size={16} />
+            Configure & Run Pipeline
+          </Link>
         </div>
       )}
 
