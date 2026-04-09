@@ -1,22 +1,9 @@
 {
-  "stage": "dev",
+  "stage": "plan_pending",
   "iteration": 1,
-  "quality_score": 30,
-  "quality_details": {
-    "transform_preview_missing": 0,
-    "dashboard_sampling_unlabeled": 0,
-    "destination_validation_missing": 0,
-    "no_tooltips_guidance": 0,
-    "password_strength_indicator": 0,
-    "no_flow_diagram": 0,
-    "no_auto_save": 0,
-    "templates_card_alignment": 0,
-    "activity_log_delete_name": 0,
-    "css_consistency": 50,
-    "build_success": 100
-  },
-  "completeness": 30,
-  "summary": "PRD 文件已完整（7項全部滿足 >= 50字）。SA/SD 覆蓋完整。11個 UX 缺陷待修，P0 為 Transform 步輸出 Preview",
-  "next_action": "優先修 P0 Transform 步輸出 Preview（PipelineEditor.tsx 新增 Output Preview table），其次修 Dashboard 取樣未告知標註",
-  "updated_at": "2026-04-09T14:30:00.000Z"
+  "quality_score": 0,
+  "completeness": 0,
+  "summary": "等待老闆確認 PLAN.md 後執行",
+  "next_action": "老闆在 Notion 打勾「確認」後 Worker 會繼續執行",
+  "updated_at": "2026-04-09T15:00:00.000Z"
 }
