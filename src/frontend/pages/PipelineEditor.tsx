@@ -4,20 +4,12 @@ import { Database, Globe, FileText, FileJson, ArrowRight, ArrowLeft, CheckCircle
 import { usePipelineStore } from '../store/pipelineStore'
 import { testSource, testDestination, getPipeline, updatePipeline, triggerRun, createTemplate, exportPipelines } from '../api/pipeline'
 import type { Pipeline } from '../store/pipelineStore'
+import { applyTransform } from '../utils/transformUtils'
+import type { FieldMapping, TransformType, FilterOperator } from '../utils/transformUtils'
 
 type SourceType = 'api' | 'csv' | 'json'
 type DbType = 'postgresql' | 'mysql' | 'csv'
 type WriteMode = 'INSERT' | 'UPSERT'
-type TransformType = 'string' | 'integer' | 'date' | 'trim' | 'lowercase' | 'uppercase' | 'concat'
-type FilterOperator = 'eq' | 'neq' | 'contains' | 'gt' | 'lt' | 'gte' | 'lte'
-
-interface FieldMapping {
-  id: string
-  sourceField: string
-  destField: string
-  transform: TransformType
-  transformParams?: Record<string, string>
-}
 
 interface TransformConfig {
   mappings: FieldMapping[]
@@ -212,73 +204,10 @@ export default function PipelineEditor() {
   const updateMapping = (id: string, field: Partial<FieldMapping>) =>
     setTransformMappings((prev) => prev.map(m => m.id === id ? { ...m, ...field } : m))
 
-  const applyTransform = (rows: string[][], fields: string[], mappings: FieldMapping[], filter?: { field: string; op: FilterOperator; value: string }, sort?: { field: string; dir: 'asc' | 'desc' }): { rows: string[][]; headers: string[] } => {
-    if (!rows.length || !mappings.length) return { rows: [], headers: [] }
-
-    // Build object rows for easier processing
-    const objRows = rows.map(row => {
-      const obj: Record<string, string> = {}
-      fields.forEach((f, i) => { obj[f] = row[i] ?? '' })
-      return obj
-    })
-
-    // Apply filter
-    let filtered = objRows
-    if (filter && filter.field) {
-      filtered = objRows.filter(row => {
-        const val = row[filter.field] ?? ''
-        switch (filter.op) {
-          case 'eq': return val === filter.value
-          case 'neq': return val !== filter.value
-          case 'contains': return val.includes(filter.value)
-          case 'gt': return !isNaN(+val) && +val > +filter.value
-          case 'lt': return !isNaN(+val) && +val < +filter.value
-          case 'gte': return !isNaN(+val) && +val >= +filter.value
-          case 'lte': return !isNaN(+val) && +val <= +filter.value
-          default: return true
-        }
-      })
-    }
-
-    // Apply sort
-    if (sort && sort.field) {
-      filtered = [...filtered].sort((a, b) => {
-        const aVal = a[sort.field] ?? ''
-        const bVal = b[sort.field] ?? ''
-        const cmp = isNaN(+aVal) || isNaN(+bVal) ? aVal.localeCompare(bVal) : +aVal - +bVal
-        return sort.dir === 'asc' ? cmp : -cmp
-      })
-    }
-
-    // Apply mappings
-    const destHeaders = mappings.map(m => m.destField)
-    const result = filtered.map(row => {
-      return mappings.map(m => {
-        let val: string = row[m.sourceField] ?? ''
-        switch (m.transform) {
-          case 'trim': val = val.trim(); break
-          case 'lowercase': val = val.toLowerCase(); break
-          case 'uppercase': val = val.toUpperCase(); break
-          case 'integer': val = String(Math.floor(+val) || 0); break
-          case 'date': val = val; break
-          case 'concat': {
-            const params = m.transformParams as Record<string, string> | undefined
-            val = (params?.prefix ?? '') + val + (params?.suffix ?? '')
-            break
-          }
-          default: break
-        }
-        return val
-      })
-    })
-
-    return { rows: result, headers: destHeaders }
-  }
-
   const handlePreviewTransform = () => {
     const filter = filterField ? { field: filterField, op: filterOperator, value: filterValue } : undefined
     const sort = sortField ? { field: sortField, dir: sortDirection } : undefined
-    const result = applyTransform(previewData, sourceFields, transformMappings, filter, sort)
+    const result = applyTransform({ rows: previewData, fields: sourceFields, mappings: transformMappings, filter, sort })
     setTransformPreviewData(result.rows)
     setTransformPreviewHeaders(result.headers)
   }
