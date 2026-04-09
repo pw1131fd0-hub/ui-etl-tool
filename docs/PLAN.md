@@ -101,6 +101,21 @@ PRD (85) → SA+SD (85) → dev (90) → test (95) → security (95) → done
 
 ---
 
+## 部署規劃
+
+> Worker 執行前由老闆填寫，完成後寫入 `docs/.deploy_info.json`
+
+| 欄位 | 內容 |
+|------|------|
+| 部署方式 | （待填）Docker / PM2 / npm start |
+| Port | （待填） |
+| 子網域 | （待填）e.g. ui-etl.qoqsworld.com |
+| 反向代理 | （待填）Caddy / Nginx / Cloudflare Tunnel |
+| 健康檢查 | （待填）/health 或 title 關鍵字 |
+| 備註 | （待填） |
+
+---
+
 ## 確認事項
 
 請老闆確認：

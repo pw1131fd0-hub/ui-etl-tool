@@ -261,7 +261,18 @@
 <a name='L196'></a><a href='#L196'>196</a>
 <a name='L197'></a><a href='#L197'>197</a>
 <a name='L198'></a><a href='#L198'>198</a>
-<a name='L199'></a><a href='#L199'>199</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -369,6 +380,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -461,7 +483,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, CheckCircle, XCircle, Clock, Loader2, Database, RefreshCw } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Clock, Loader2, Database, RefreshCw, Play } from 'lucide-react'
 import api from '../api/index'
 &nbsp;
 interface Run {
@@ -566,7 +588,7 @@ export default function <span class="fstat-no" title="function not covered" >Run
           { label: 'Failed', value: stats.failed, color: 'text-red-400' },
           { label: 'Running', value: stats.running, color: 'text-blue-400' },
         ].<span class="fstat-no" title="function not covered" >map(s</span> =&gt; (
-<span class="cstat-no" title="statement not covered" >          &lt;div key={s.label} className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5"&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;div key={s.label} c</span>lassName="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5"&gt;
             &lt;p className="text-slate-400 text-sm mb-1"&gt;{s.label}&lt;/p&gt;
             &lt;p className={`text-3xl font-bold ${s.color}`}&gt;{s.value}&lt;/p&gt;
           &lt;/div&gt;
@@ -589,10 +611,21 @@ export default function <span class="fstat-no" title="function not covered" >Run
 &nbsp;
       {/* Empty */}
       {!loading &amp;&amp; runs.length === 0 &amp;&amp; (
-        &lt;div className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-16 text-center"&gt;
-          &lt;Clock size={40} className="text-slate-600 mx-auto mb-4" /&gt;
-          &lt;h3 className="text-slate-300 font-medium mb-2"&gt;No runs yet&lt;/h3&gt;
-          &lt;p className="text-slate-500 text-sm"&gt;Run this pipeline to see execution history&lt;/p&gt;
+        &lt;div className="bg-slate-800/20 border border-slate-700/30 rounded-2xl p-16 text-center"&gt;
+          &lt;div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-6"&gt;
+            &lt;Clock size={36} className="text-blue-400" /&gt;
+          &lt;/div&gt;
+          &lt;h3 className="text-slate-200 text-xl font-semibold mb-3"&gt;No runs yet&lt;/h3&gt;
+          &lt;p className="text-slate-500 text-sm mb-8 max-w-sm mx-auto leading-relaxed"&gt;
+            This pipeline hasn't been executed yet. Configure your Source, Transform, and Destination steps, then run it to see history here.
+          &lt;/p&gt;
+          &lt;Link
+            to={`/pipelines/${id}`}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-500 text-white rounded-xl text-sm font-medium hover:bg-indigo-600 transition-all"
+          &gt;
+            &lt;Play size={16} /&gt;
+            Configure &amp; Run Pipeline
+          &lt;/Link&gt;
         &lt;/div&gt;
       )}
 &nbsp;
@@ -664,7 +697,7 @@ export default function <span class="fstat-no" title="function not covered" >Run
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-09T16:07:47.223Z
+                at 2026-04-09T20:31:06.849Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
