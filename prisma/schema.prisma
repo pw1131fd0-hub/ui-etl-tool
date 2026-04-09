@@ -28,6 +28,8 @@ model Workspace {
   users         User[]
   pipelines     Pipeline[]
   apiKeys       ApiKey[]
+  templates     PipelineTemplate[]
+  activityLogs  ActivityLog[]
 
   @@map("workspaces")
 }
@@ -73,4 +75,35 @@ model ApiKey {
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   @@map("api_keys")
+}
+
+model PipelineTemplate {
+  id                String   @id @default(uuid())
+  workspaceId       String   @map("workspace_id")
+  name              String
+  description       String?
+  sourceConfig      Json     @map("source_config")
+  transformConfig   Json     @map("transform_config")
+  destinationConfig Json     @map("destination_config")
+  category          String   @default("custom")
+  isPublic          Boolean  @default(false) @map("is_public")
+  usageCount        Int      @default(0) @map("usage_count")
+  createdAt         DateTime @default(now()) @map("created_at")
+  workspace         Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@map("pipeline_templates")
+}
+
+model ActivityLog {
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  userId      String?   @map("user_id")
+  action      String
+  entityType  String    @map("entity_type")
+  entityId    String?   @map("entity_id")
+  details     Json?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@map("activity_logs")
 }

@@ -5,6 +5,7 @@ import pg from 'pg'
 import mysql from 'mysql2/promise'
 import * as fs from 'fs'
 import * as path from 'path'
+import { emitRunProgress } from '../index.js'
 
 const { Pool: PgPool } = pg
 const prisma = new PrismaClient()
@@ -350,29 +351,43 @@ export async function processETLJob(job: ETLJob): Promise<{ inputRows: number; o
   let outputRows = 0
   let errorMessage: string | undefined
 
+  const emit = (stage: string, progress: number, details?: object) => {
+    emitRunProgress(runId, { stage, progress, timestamp: new Date().toISOString(), ...details })
+  }
+
   try {
-    // Fetch
+    // Stage 1: Fetching
+    emit('fetching', 10)
     const rawData = await fetchSource(sourceConfig)
     inputRows = rawData.length
+    emit('fetching', 30, { rowsFetched: inputRows })
 
-    // Transform - filter
+    // Stage 2: Filtering
     let transformed = rawData
     if (transformConfig.filterField) {
+      emit('filtering', 40)
       transformed = filterRows(transformed, transformConfig.filterField, transformConfig.filterOperator ?? 'eq', transformConfig.filterValue ?? '')
+      emit('filtering', 50, { rowsAfterFilter: transformed.length })
     }
 
-    // Transform - sort
+    // Stage 3: Sorting
     if (transformConfig.sortField) {
+      emit('sorting', 55)
       transformed = sortRows(transformed, transformConfig.sortField, transformConfig.sortDirection ?? 'asc')
+      emit('sorting', 60)
     }
 
-    // Transform - field mappings
+    // Stage 4: Transforming
+    emit('transforming', 65)
     transformed = transformed.map((row) => transformRow(row, mappings))
     outputRows = transformed.length
+    emit('transforming', 75, { rowsTransformed: outputRows })
 
-    // Write
+    // Stage 5: Writing
+    emit('writing', 80)
     const written = await writeDestination(transformed, destinationConfig, mappings)
     outputRows = written
+    emit('writing', 95, { rowsWritten: outputRows })
 
     // Success
     await prisma.run.update({
@@ -384,6 +399,7 @@ export async function processETLJob(job: ETLJob): Promise<{ inputRows: number; o
         completedAt: new Date(),
       },
     })
+    emit('completed', 100, { inputRows, outputRows })
   } catch (err: unknown) {
     errorMessage = (err as Error)?.message ?? 'Unknown error'
     await prisma.run.update({
@@ -396,6 +412,7 @@ export async function processETLJob(job: ETLJob): Promise<{ inputRows: number; o
         completedAt: new Date(),
       },
     })
+    emit('failed', 100, { error: errorMessage })
     throw err
   }
 

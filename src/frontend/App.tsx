@@ -1,11 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom'
-import { LayoutDashboard, GitBranch, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, GitBranch, Settings, LogOut, LayoutTemplate, Activity } from 'lucide-react'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import PipelineEditor from './pages/PipelineEditor'
 import RunHistory from './pages/RunHistory'
 import SettingsPage from './pages/Settings'
+import TemplatesPage from './pages/Templates'
+import ActivityLogPage from './pages/ActivityLog'
 import { useAuthStore } from './store/authStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -18,6 +20,8 @@ function Sidebar() {
   const { logout } = useAuthStore()
   const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/templates', icon: LayoutTemplate, label: 'Templates' },
+    { to: '/activity', icon: Activity, label: 'Activity' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ]
   return (
@@ -76,6 +80,8 @@ export default function App() {
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/templates" element={<TemplatesPage />} />
+                    <Route path="/activity" element={<ActivityLogPage />} />
                     <Route path="/pipelines/new" element={<PipelineEditor />} />
                     <Route path="/pipelines/:id" element={<PipelineEditor />} />
                     <Route path="/pipelines/:id/runs" element={<RunHistory />} />

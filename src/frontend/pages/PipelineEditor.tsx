@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Database, Globe, FileText, FileJson, ArrowRight, ArrowLeft, CheckCircle, XCircle, Loader2, Plus, Trash2, ChevronRight, Save, Play, Clock, Filter, SortAsc, SortDesc } from 'lucide-react'
+import { Database, Globe, FileText, FileJson, ArrowRight, ArrowLeft, CheckCircle, XCircle, Loader2, Plus, Trash2, ChevronRight, Save, Play, Clock, Filter, SortAsc, SortDesc, LayoutTemplate, Download } from 'lucide-react'
 import { usePipelineStore } from '../store/pipelineStore'
-import { testSource, testDestination, getPipeline, updatePipeline, triggerRun } from '../api/pipeline'
+import { testSource, testDestination, getPipeline, updatePipeline, triggerRun, createTemplate, exportPipelines } from '../api/pipeline'
 import type { Pipeline } from '../store/pipelineStore'
 
 type SourceType = 'api' | 'csv' | 'json'
@@ -239,6 +239,43 @@ export default function PipelineEditor() {
       setError((err as { message?: string })?.message ?? 'Failed to trigger run')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSaveAsTemplate = async () => {
+    if (!pipeline?.id) return
+    const templateName = prompt('Enter template name:', pipeline.name)
+    if (!templateName) return
+    setLoading(true)
+    try {
+      await createTemplate({
+        name: templateName,
+        description: pipeline.description ?? undefined,
+        sourceConfig: pipeline.sourceConfig as Record<string, unknown>,
+        transformConfig: pipeline.transformConfig as Record<string, unknown>,
+        destinationConfig: pipeline.destinationConfig as Record<string, unknown>,
+      })
+      setTestStatus({ ok: true, msg: 'Template saved!' })
+    } catch (err: unknown) {
+      setError((err as { message?: string })?.message ?? 'Failed to save template')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleExport = async () => {
+    if (!pipeline?.id) return
+    try {
+      const data = await exportPipelines([pipeline.id])
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${pipeline.name.replace(/\s+/g, '_')}_export.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err: unknown) {
+      setError((err as { message?: string })?.message ?? 'Failed to export')
     }
   }
 
@@ -774,6 +811,25 @@ export default function PipelineEditor() {
               <Save size={16} />
               Save
             </button>
+            {pipeline?.id && (
+              <button
+                onClick={handleSaveAsTemplate}
+                disabled={loading}
+                className="flex items-center gap-2 px-5 py-2.5 bg-purple-500/20 text-purple-400 rounded-xl text-sm font-medium hover:bg-purple-500/30 transition-all disabled:opacity-50"
+              >
+                <LayoutTemplate size={16} />
+                Save as Template
+              </button>
+            )}
+            {pipeline?.id && (
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-2 px-5 py-2.5 bg-slate-700 text-slate-300 rounded-xl text-sm font-medium hover:bg-slate-600 transition-all"
+              >
+                <Download size={16} />
+                Export
+              </button>
+            )}
             {step === 'Destination' && (
               <button
                 onClick={handleRun}

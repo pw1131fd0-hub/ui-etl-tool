@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Key, Plus, Trash2, Copy, CheckCircle, AlertCircle, Settings, User, Shield } from 'lucide-react'
+import { Key, Plus, Trash2, Copy, CheckCircle, AlertCircle, Settings as SettingsIcon, User, Shield } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 import { getApiKeys, createApiKey, deleteApiKey } from '../api/pipeline'
 

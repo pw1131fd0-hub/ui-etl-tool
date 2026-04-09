@@ -75,3 +75,85 @@ export async function createApiKey(name: string): Promise<ApiKey> {
 export async function deleteApiKey(id: string): Promise<void> {
   await api.delete(`/apikeys/${id}`)
 }
+
+// Templates
+export interface PipelineTemplate {
+  id: string
+  name: string
+  description?: string
+  sourceConfig: Record<string, unknown>
+  transformConfig: Record<string, unknown>
+  destinationConfig: Record<string, unknown>
+  category: string
+  isPublic: boolean
+  usageCount: number
+  createdAt: string
+}
+
+export async function getTemplates(): Promise<PipelineTemplate[]> {
+  const { data } = await api.get('/templates')
+  return data
+}
+
+export async function getTemplate(id: string): Promise<PipelineTemplate> {
+  const { data } = await api.get(`/templates/${id}`)
+  return data
+}
+
+export async function createTemplate(payload: {
+  name: string
+  description?: string
+  sourceConfig: Record<string, unknown>
+  transformConfig: Record<string, unknown>
+  destinationConfig: Record<string, unknown>
+  category?: string
+  isPublic?: boolean
+}): Promise<PipelineTemplate> {
+  const { data } = await api.post('/templates', payload)
+  return data
+}
+
+export async function deleteTemplate(id: string): Promise<void> {
+  await api.delete(`/templates/${id}`)
+}
+
+export async function instantiateTemplate(id: string, name?: string): Promise<Pipeline> {
+  const { data } = await api.post(`/templates/${id}/instantiate`, { name })
+  return data
+}
+
+// Import/Export
+export async function exportPipelines(pipelineIds: string[]): Promise<{ version: string; exportedAt: string; pipelines: unknown[] }> {
+  const { data } = await api.post('/export/export', { pipelineIds })
+  return data
+}
+
+export async function importPipelines(json: {
+  version: string
+  pipelines: Array<{
+    name: string
+    description?: string
+    sourceConfig: Record<string, unknown>
+    transformConfig: Record<string, unknown>
+    destinationConfig: Record<string, unknown>
+    schedule?: string
+  }>
+}): Promise<{ imported: number; pipelines: Pipeline[] }> {
+  const { data } = await api.post('/export/import', json)
+  return data
+}
+
+// Activity Log
+export interface ActivityLog {
+  id: string
+  action: string
+  entityType: string
+  entityId?: string
+  details?: Record<string, unknown>
+  createdAt: string
+}
+
+export async function getActivityLogs(limit?: number, offset?: number): Promise<{ logs: ActivityLog[]; total: number }> {
+  const { data } = await api.get('/activity', { params: { limit, offset } })
+  return data
+}

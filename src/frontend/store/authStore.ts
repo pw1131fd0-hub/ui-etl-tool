@@ -23,6 +23,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string) => Promise<void>
   logout: () => void
+  setTokens: (accessToken: string, refreshToken: string) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -55,6 +56,8 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () =>
         set({ user: null, workspace: null, accessToken: null, refreshToken: null }),
+      setTokens: (accessToken: string, refreshToken: string) =>
+        set({ accessToken, refreshToken }),
     }),
     { name: 'auth-storage' }
   )
