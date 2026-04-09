@@ -78,6 +78,8 @@ export default function PipelineEditor() {
   })
   const [previewData, setPreviewData] = useState<string[][]>([])
   const [sourceFields, setSourceFields] = useState<string[]>([])
+  const [transformPreviewData, setTransformPreviewData] = useState<string[][]>([])
+  const [transformPreviewHeaders, setTransformPreviewHeaders] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [testStatus, setTestStatus] = useState<{ ok: boolean; msg: string } | null>(null)
@@ -180,6 +182,77 @@ export default function PipelineEditor() {
   const updateMapping = (id: string, field: Partial<FieldMapping>) =>
     setTransformMappings((prev) => prev.map(m => m.id === id ? { ...m, ...field } : m))
 
+  const applyTransform = (rows: string[][], fields: string[], mappings: FieldMapping[], filter?: { field: string; op: FilterOperator; value: string }, sort?: { field: string; dir: 'asc' | 'desc' }): { rows: string[][]; headers: string[] } => {
+    if (!rows.length || !mappings.length) return { rows: [], headers: [] }
+
+    // Build object rows for easier processing
+    const objRows = rows.map(row => {
+      const obj: Record<string, string> = {}
+      fields.forEach((f, i) => { obj[f] = row[i] ?? '' })
+      return obj
+    })
+
+    // Apply filter
+    let filtered = objRows
+    if (filter && filter.field) {
+      filtered = objRows.filter(row => {
+        const val = row[filter.field] ?? ''
+        switch (filter.op) {
+          case 'eq': return val === filter.value
+          case 'neq': return val !== filter.value
+          case 'contains': return val.includes(filter.value)
+          case 'gt': return !isNaN(+val) && +val > +filter.value
+          case 'lt': return !isNaN(+val) && +val < +filter.value
+          case 'gte': return !isNaN(+val) && +val >= +filter.value
+          case 'lte': return !isNaN(+val) && +val <= +filter.value
+          default: return true
+        }
+      })
+    }
+
+    // Apply sort
+    if (sort && sort.field) {
+      filtered = [...filtered].sort((a, b) => {
+        const aVal = a[sort.field] ?? ''
+        const bVal = b[sort.field] ?? ''
+        const cmp = isNaN(+aVal) || isNaN(+bVal) ? aVal.localeCompare(bVal) : +aVal - +bVal
+        return sort.dir === 'asc' ? cmp : -cmp
+      })
+    }
+
+    // Apply mappings
+    const destHeaders = mappings.map(m => m.destField)
+    const result = filtered.map(row => {
+      return mappings.map(m => {
+        let val: string = row[m.sourceField] ?? ''
+        switch (m.transform) {
+          case 'trim': val = val.trim(); break
+          case 'lowercase': val = val.toLowerCase(); break
+          case 'uppercase': val = val.toUpperCase(); break
+          case 'integer': val = String(Math.floor(+val) || 0); break
+          case 'date': val = val; break
+          case 'concat': {
+            const params = m.transformParams as Record<string, string> | undefined
+            val = (params?.prefix ?? '') + val + (params?.suffix ?? '')
+            break
+          }
+          default: break
+        }
+        return val
+      })
+    })
+
+    return { rows: result, headers: destHeaders }
+  }
+
+  const handlePreviewTransform = () => {
+    const filter = filterField ? { field: filterField, op: filterOperator, value: filterValue } : undefined
+    const sort = sortField ? { field: sortField, dir: sortDirection } : undefined
+    const result = applyTransform(previewData, sourceFields, transformMappings, filter, sort)
+    setTransformPreviewData(result.rows)
+    setTransformPreviewHeaders(result.headers)
+  }
+
   const handleTestConnection = async () => {
     setLoading(true)
     setTestStatus(null)
@@ -225,6 +298,20 @@ export default function PipelineEditor() {
   }
 
   const handleRun = async () => {
+    // Client-side validation for Destination step
+    if (step === 'Destination') {
+      const missing: string[] = []
+      if (destConfig.type !== 'csv') {
+        if (!destConfig.host) missing.push('Host')
+        if (!destConfig.database) missing.push('Database')
+        if (!destConfig.username) missing.push('Username')
+        if (!destConfig.table) missing.push('Table')
+      }
+      if (missing.length > 0) {
+        setError(`Please fill in: ${missing.join(', ')}`)
+        return
+      }
+    }
     if (!pipeline?.id) {
       await handleSave()
       return
@@ -303,7 +390,7 @@ export default function PipelineEditor() {
                 value={schedule}
                 onChange={(e) => setSchedule(e.target.value)}
                 placeholder="*/5 * * * *"
-                title="Cron: */5 * * * * = every 5 min"
+                title="Cron schedule format&#10;*/5 * * * * = every 5 minutes&#10;0 0 * * * = daily at midnight&#10;0 * * * * = every hour"
               />
             </div>
           </div>
@@ -653,6 +740,48 @@ export default function PipelineEditor() {
                 </div>
               </div>
             </div>
+
+            {/* Preview Transform Button */}
+            {previewData.length > 0 && transformMappings.length > 0 && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handlePreviewTransform}
+                  title="Apply filter, sort, and field mappings to the source data and preview the transformed output"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-500 text-white rounded-xl text-sm font-medium hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-500/25"
+                >
+                  <CheckCircle size={16} />
+                  Preview Transform Output
+                </button>
+                <span className="text-xs text-slate-500">Shows transformed data after filter, sort & field mappings</span>
+              </div>
+            )}
+
+            {/* Transform Output Preview */}
+            {transformPreviewData.length > 0 && (
+              <div className="bg-slate-800/60 border border-emerald-500/30 rounded-2xl p-6">
+                <h3 className="text-sm font-medium text-emerald-400 mb-3">Transform Output Preview ({transformPreviewData.length} rows)</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-emerald-500/10">
+                        {transformPreviewHeaders.map((f) => (
+                          <th key={f} className="px-4 py-2.5 text-left font-medium text-emerald-300 whitespace-nowrap">{f}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {transformPreviewData.map((row, i) => (
+                        <tr key={i} className="border-t border-slate-700/30 hover:bg-slate-700/20">
+                          {row.map((cell, j) => (
+                            <td key={j} className="px-4 py-2 text-slate-300 whitespace-nowrap max-w-xs truncate">{cell}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -763,6 +892,7 @@ export default function PipelineEditor() {
                         className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                         value={destConfig.writeMode}
                         onChange={(e) => setDestConfig((p) => ({ ...p, writeMode: e.target.value as WriteMode }))}
+                        title="INSERT: adds new rows only&#10;UPSERT: inserts new rows or updates existing rows on conflict"
                       >
                         <option value="INSERT">INSERT</option>
                         <option value="UPSERT">UPSERT (INSERT OR REPLACE)</option>

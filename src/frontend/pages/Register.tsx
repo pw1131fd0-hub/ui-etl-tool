@@ -12,6 +12,21 @@ export default function Register() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const getPasswordStrength = (pwd: string): { label: string; color: string; width: string } => {
+    if (!pwd) return { label: '', color: '', width: '0%' }
+    let score = 0
+    if (pwd.length >= 8) score++
+    if (pwd.length >= 12) score++
+    if (/[A-Z]/.test(pwd)) score++
+    if (/[a-z]/.test(pwd)) score++
+    if (/[0-9]/.test(pwd)) score++
+    if (/[^A-Za-z0-9]/.test(pwd)) score++
+    if (score <= 2) return { label: 'Weak', color: 'bg-red-400', width: '33%' }
+    if (score <= 4) return { label: 'Medium', color: 'bg-amber-400', width: '66%' }
+    return { label: 'Strong', color: 'bg-emerald-400', width: '100%' }
+  }
+  const strength = getPasswordStrength(password)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (password.length < 8) {
@@ -84,6 +99,16 @@ export default function Register() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {password && (
+                <div className="mt-2">
+                  <div className="h-1 w-full bg-slate-700 rounded-full overflow-hidden">
+                    <div className={`h-full ${strength.color} transition-all duration-300 rounded-full`} style={{ width: strength.width }} />
+                  </div>
+                  <p className={`text-xs mt-1 ${strength.label === 'Weak' ? 'text-red-400' : strength.label === 'Medium' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                    {strength.label} — min 8 chars, include numbers & symbols for stronger password
+                  </p>
+                </div>
+              )}
             </div>
 
             <button

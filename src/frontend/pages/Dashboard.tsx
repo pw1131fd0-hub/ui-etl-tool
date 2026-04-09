@@ -34,15 +34,15 @@ export default function Dashboard() {
       if (pipelines.length === 0) return
       try {
         const { getApiKeys } = await import('../api/pipeline')
-        // Get runs from all pipelines
+        // Get runs from ALL pipelines (full data, no sampling)
         const allRuns: RunInfo[] = []
-        for (const p of pipelines.slice(0, 5)) {
+        for (const p of pipelines) {
           const res = await fetch(`/api/pipelines/${p.id}/runs`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
           })
           if (res.ok) {
             const runs = await res.json()
-            allRuns.push(...runs.slice(0, 10))
+            allRuns.push(...runs)
           }
         }
         allRuns.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
