@@ -1,0 +1,43 @@
+你是這個專案的部署工程師。請智慧判斷如何啟動這個服務：
+
+【第一步：分析專案結構】
+檢查專案內的檔案，判斷這是什麼類型的專案，以及如何啟動：
+- 有 docker-compose.yml → docker compose up -d --build
+- 有 Dockerfile → docker build + docker run -d
+- 有 Makefile 且包含 run/serve target → make run 或 make serve（背景執行）
+- Go 專案（go.mod）→ go build + 背景執行 binary
+- Python 專案（pyproject.toml / requirements.txt）→ pip install + 背景執行
+- Node.js（package.json）→ npm install && npm start（背景執行）
+- 有 k8s/ 目錄 → kubectl apply
+
+【第二步：處理端口】
+- 優先使用 port 3000，若被占用則依序 3001、3002...
+- 如果專案有前後端分離，後端用 3000 系列，前端用下一個可用 port
+- 用 lsof -i :PORT 或 ss -tlnp 檢查端口是否被占用
+- 如果被同專案的舊進程占用 → 先停掉舊的再啟動
+- 如果被其他服務占用 → 跳到下一個 port（不要動其他服務）
+
+【第三步：啟動服務】
+- 確保服務在背景執行（不會因 shell 結束而停止）
+- 使用 nohup 或 screen/tmux 或 docker -d
+- 啟動後用 curl 或 wget 驗證服務是否正常回應
+- 如果啟動失敗，自己 debug 並修復（最多重試 3 次）
+
+【第四步：寫入部署資訊】
+將部署結果寫入 docs/.deploy_info.json：
+{
+  "deployed_at": "ISO 時間",
+  "method": "docker-compose / binary / npm 等",
+  "ports": [8080],
+  "urls": ["http://localhost:8080"],
+  "pid_or_container": "PID 或 container name",
+  "status": "running / failed",
+  "error": "失敗原因（如果有）"
+}
+
+【鐵則】
+- 不要問問題，直接做
+- 服務必須在背景持續執行
+- 不要修改業務邏輯程式碼，只處理部署相關
+- 如果需要安裝依賴（npm install, pip install, go mod download），可以執行
+- git add 變更的檔案
