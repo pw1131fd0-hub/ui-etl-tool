@@ -1,9 +1,0 @@
-{
-  "stage": "plan_pending",
-  "iteration": 1,
-  "quality_score": 0,
-  "completeness": 0,
-  "summary": "等待老闆確認 PLAN.md 後執行",
-  "next_action": "老闆在 Notion 打勾「確認」後 Worker 會繼續執行",
-  "updated_at": "2026-04-09T15:00:00.000Z"
-}
