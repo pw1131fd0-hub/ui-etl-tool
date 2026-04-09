@@ -16,6 +16,52 @@ export interface TransformConfig {
   filterValue?: string
   sortField?: string
   sortDirection?: 'asc' | 'desc'
+  flattenNested?: boolean
+}
+
+// Flatten nested objects: { user: { name: "John" } } -> { "user.name": "John" }
+export function flattenObject(obj: unknown, prefix = ''): Record<string, unknown> {
+  const result: Record<string, unknown> = {}
+  if (typeof obj !== 'object' || obj === null) {
+    if (prefix) result[prefix] = obj
+    return result
+  }
+  if (Array.isArray(obj)) {
+    if (prefix) result[prefix] = obj
+    return result
+  }
+  for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+    const newKey = prefix ? `${prefix}.${key}` : key
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      Object.assign(result, flattenObject(value, newKey))
+    } else if (Array.isArray(value)) {
+      // For arrays in source, stringify them (can be further parsed by destination)
+      result[newKey] = JSON.stringify(value)
+    } else {
+      result[newKey] = value
+    }
+  }
+  return result
+}
+
+// Flatten all rows (for nested JSON sources)
+export function flattenRows(rows: Record<string, unknown>[]): Record<string, unknown>[] {
+  return rows.map(row => flattenObject(row))
+}
+
+// Extract nested value using dot notation: row["user.profile.name"]
+export function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
+  const parts = path.split('.')
+  let current: unknown = obj
+  for (const part of parts) {
+    if (current === null || current === undefined) return undefined
+    if (typeof current === 'object') {
+      current = (current as Record<string, unknown>)[part]
+    } else {
+      return undefined
+    }
+  }
+  return current
 }
 
 export function applyTransform(value: unknown, type: string, params?: Record<string, unknown>): unknown {
@@ -56,8 +102,11 @@ export function transformRow(
   const out: Record<string, unknown> = {}
   for (const m of mappings) {
     if (m.transform === 'filter') continue
-    const val = applyTransform(row[m.sourceField], m.transform, m.transformParams)
-    out[m.destField] = val
+    // Support dot notation for nested fields: "user.profile.name"
+    const val = m.sourceField.includes('.')
+      ? getNestedValue(row, m.sourceField)
+      : row[m.sourceField]
+    out[m.destField] = applyTransform(val, m.transform, m.transformParams)
   }
   return out
 }
@@ -111,6 +160,11 @@ export function runTransformPipeline(
   config: TransformConfig
 ): Record<string, unknown>[] {
   let result = rows
+
+  // Flatten nested objects if enabled
+  if (config.flattenNested) {
+    result = flattenRows(result)
+  }
 
   // Apply filter
   if (config.filterField && config.filterOperator) {

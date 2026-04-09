@@ -1,7 +1,7 @@
 import api from './index'
 import type { Pipeline } from '../store/pipelineStore'
 
-interface SourcePreview { rows: string[][]; fields: string[] }
+interface SourcePreview { rows: string[][]; fields: string[]; hasNested?: boolean }
 interface DestTestResult { success: boolean; message: string }
 
 export async function getPipeline(id: string): Promise<Pipeline> {

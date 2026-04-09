@@ -19,6 +19,7 @@ interface TransformConfig {
   filterValue?: string
   sortField?: string
   sortDirection?: 'asc' | 'desc'
+  flattenNested?: boolean
 }
 
 interface SourceConfig {
@@ -86,6 +87,7 @@ export default function PipelineEditor() {
   const [filterValue, setFilterValue] = useState('')
   const [sortField, setSortField] = useState('')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  const [flattenNested, setFlattenNested] = useState(false)
 
   const stepIndex = STEPS.findIndex(s => s.key === step)
 
@@ -108,6 +110,7 @@ export default function PipelineEditor() {
         if (tcfg.filterValue) setFilterValue(tcfg.filterValue)
         if (tcfg.sortField) setSortField(tcfg.sortField)
         if (tcfg.sortDirection) setSortDirection(tcfg.sortDirection)
+        if (tcfg.flattenNested) setFlattenNested(tcfg.flattenNested)
       }).catch(console.error)
     }
   }, [isNew, id])
@@ -126,6 +129,7 @@ export default function PipelineEditor() {
           filterValue: filterField ? filterValue : undefined,
           sortField: sortField || undefined,
           sortDirection: sortField ? sortDirection : undefined,
+          flattenNested: flattenNested || undefined,
         }
         const payload = { name, description, schedule: schedule || null, sourceConfig, transformConfig, destinationConfig: destConfig }
         await updatePipeline(pipeline.id, payload)
@@ -208,7 +212,7 @@ export default function PipelineEditor() {
   const handlePreviewTransform = () => {
     const filter = filterField ? { field: filterField, op: filterOperator, value: filterValue } : undefined
     const sort = sortField ? { field: sortField, dir: sortDirection } : undefined
-    const result = applyTransform({ rows: previewData, fields: sourceFields, mappings: transformMappings, filter, sort })
+    const result = applyTransform({ rows: previewData, fields: sourceFields, mappings: transformMappings, filter, sort, flattenNested })
     setTransformPreviewData(result.rows)
     setTransformPreviewHeaders(result.headers)
   }
@@ -237,6 +241,7 @@ export default function PipelineEditor() {
         filterValue: filterField ? filterValue : undefined,
         sortField: sortField || undefined,
         sortDirection: sortField ? sortDirection : undefined,
+        flattenNested: flattenNested || undefined,
       }
       const payload = { name, description, schedule: schedule || null, sourceConfig, transformConfig, destinationConfig: destConfig }
       let saved: Pipeline
@@ -710,8 +715,8 @@ export default function PipelineEditor() {
               </div>
             </div>
 
-            {/* Filter & Sort */}
-            <div className="grid grid-cols-2 gap-6">
+            {/* Filter, Sort & Flatten */}
+            <div className="grid grid-cols-3 gap-6">
               <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Filter size={16} className="text-amber-400" />
@@ -800,6 +805,34 @@ export default function PipelineEditor() {
                       </button>
                     </div>
                   )}
+                </div>
+              </div>
+
+              <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText size={16} className="text-purple-400" />
+                  <h3 className="text-sm font-medium text-slate-300">Flatten Nested</h3>
+                  <Tooltip
+                    icon="help"
+                    content="Expand nested JSON objects into flat fields. Example: {'user': {'name': 'John'}} becomes {'user.name': 'John'}. Enables dot-notation mapping like user.name → name."
+                    position="right"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={flattenNested}
+                      onChange={(e) => setFlattenNested(e.target.checked)}
+                      className="w-5 h-5 rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+                    />
+                    <span className="text-sm text-slate-300">Enable flatten</span>
+                  </label>
+                  <p className="text-xs text-slate-500">
+                    {flattenNested
+                      ? 'Nested fields will be exposed as flat dot-notation keys (e.g., user.profile.name)'
+                      : 'Enable to handle deeply nested JSON data with dot-notation field mapping'}
+                  </p>
                 </div>
               </div>
             </div>

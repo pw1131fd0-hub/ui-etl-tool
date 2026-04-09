@@ -626,7 +626,7 @@ UX enrichment complete. Here's what was done:
 /home/crawd_user/project/ui-etl-tool/coverage/block-navigation.js
 /home/crawd_user/project/ui-etl-tool/serve_static.js
 /home/crawd_user/project/ui-etl-tool/dist/backend/index.js
-/home/crawd_user/project/ui-etl-tool/dist/frontend/assets/index-Z_AyZU-3.js
+/home/crawd_user/project/ui-etl-tool/dist/frontend/assets/index-DI4jjIMu.js
 /home/crawd_user/project/ui-etl-tool/vite.config.ts
 /home/crawd_user/project/ui-etl-tool/serve.js
 /home/crawd_user/project/ui-etl-tool/postcss.config.js
@@ -652,7 +652,7 @@ P2: 無 auto-save、無 flow diagram、無密碼強度指標
 請務必對齊此期望。
 
 【老闆回饋 — 最高優先級】
-畫面有開但很裸，UX 不合格
+可以新增非結構的資料ETL嗎
 
 ⚠️ 以上回饋優先級最高，必須在本輪內處理。
 
@@ -684,7 +684,7 @@ P0: Dashboard 取樣未告知（只取前5個pipelines每個10筆）
 P1: Destination 跳轉前無驗證
 P1: 零引導零 Tooltips
 P2: 無 auto-save、無 flow diagram、無密碼強度指標
-- TASK_BOSS_NOTE: 畫面有開但很裸，UX 不合格
+- TASK_BOSS_NOTE: 可以新增非結構的資料ETL嗎
 - TASK_PATH: project/ui-etl-tool
 - QUALITY_GATES: {"prd":85,"sa_sd":85,"dev":90,"test":95,"security":95,"done":100}
 

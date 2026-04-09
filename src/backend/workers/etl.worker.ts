@@ -6,6 +6,7 @@ import mysql from 'mysql2/promise'
 import * as fs from 'fs'
 import * as path from 'path'
 import { emitRunProgress } from '../index.js'
+import { flattenObject, flattenRows, getNestedValue } from '../utils/transform.js'
 
 const { Pool: PgPool } = pg
 const prisma = new PrismaClient()
@@ -25,6 +26,7 @@ interface TransformConfig {
   filterValue?: string
   sortField?: string
   sortDirection?: 'asc' | 'desc'
+  flattenNested?: boolean
 }
 
 interface SourceConfig {
@@ -163,8 +165,11 @@ function transformRow(
   const out: Record<string, unknown> = {}
   for (const m of mappings) {
     if (m.transform === 'filter') continue
-    const val = applyTransform(row[m.sourceField], m.transform, m.transformParams)
-    out[m.destField] = val
+    // Support dot notation for nested fields: "user.profile.name"
+    const val = m.sourceField.includes('.')
+      ? getNestedValue(row, m.sourceField)
+      : row[m.sourceField]
+    out[m.destField] = applyTransform(val, m.transform, m.transformParams)
   }
   return out
 }
@@ -362,22 +367,29 @@ export async function processETLJob(job: ETLJob): Promise<{ inputRows: number; o
     inputRows = rawData.length
     emit('fetching', 30, { rowsFetched: inputRows })
 
-    // Stage 2: Filtering
+    // Stage 2: Flattening (for nested JSON)
     let transformed = rawData
+    if (transformConfig.flattenNested) {
+      emit('flattening', 35)
+      transformed = flattenRows(transformed)
+      emit('flattening', 40, { fieldsAfterFlatten: Object.keys(transformed[0] ?? {}).length })
+    }
+
+    // Stage 3: Filtering
     if (transformConfig.filterField) {
-      emit('filtering', 40)
+      emit('filtering', 45)
       transformed = filterRows(transformed, transformConfig.filterField, transformConfig.filterOperator ?? 'eq', transformConfig.filterValue ?? '')
       emit('filtering', 50, { rowsAfterFilter: transformed.length })
     }
 
-    // Stage 3: Sorting
+    // Stage 4: Sorting
     if (transformConfig.sortField) {
       emit('sorting', 55)
       transformed = sortRows(transformed, transformConfig.sortField, transformConfig.sortDirection ?? 'asc')
       emit('sorting', 60)
     }
 
-    // Stage 4: Transforming
+    // Stage 5: Transforming
     emit('transforming', 65)
     transformed = transformed.map((row) => transformRow(row, mappings))
     outputRows = transformed.length
