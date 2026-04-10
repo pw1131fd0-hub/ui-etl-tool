@@ -353,3 +353,25 @@ UI ETL Tool 项目已完成。所有 P0/P1/P2 功能已实现：Transform Output
 
 
 ---
+
+## [2026-04-10 08:44:19] [done] 100%
+
+UI ETL Tool 项目已完成。所有 P0/P1/P2 功能已实现。关键修复：新增 flattenObject/getNestedValue/flattenRows 单元测试（+15 tests，68→83 tests）。非結構化資料 ETL（嵌套 JSON 點記法提取 + flatten transform）已完整測試。68 tests → 83 tests。Build passes (371KB JS, 27KB CSS)。npm audit: 0 vulnerabilities。
+
+> Done. Here's the summary:
+
+**Non-structured Data ETL — 已完整實現**
+
+| 層 | 實作 |
+|----|------|
+| Backend transform | `flattenObject`, `getNestedValue`, `flattenRows` in `transform.ts` |
+| Frontend UI | `flattenNested` checkbox in PipelineEditor |
+| ETL Worker | Uses `flattenNested` config during pipeline execution |
+| Unit Tests | 15 new tests for `flattenObject`, `getNestedValue`, `flattenRows` |
+
+**驗證結果：**
+- Tests: **83 passing** (up from 68)
+- Build: **passes** (371KB JS, 27KB CSS)
+- npm audit: 0 v
+
+---
