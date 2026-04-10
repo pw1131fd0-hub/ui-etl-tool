@@ -656,26 +656,6 @@ P2: 無 auto-save、無 flow diagram、無密碼強度指標
 
 ⚠️ 以上回饋優先級最高，必須在本輪內處理。
 
-【上次巡檢狀態】
-{
-  "stage": "done",
-  "iteration": 2,
-  "quality_score": 100,
-  "quality_details": {
-    "prd": 100,
-    "sa_sd": 100,
-    "dev": 100,
-    "test": 100,
-    "security": 100
-  },
-  "completeness": 100,
-  "summary": "UI ETL Tool 项目已完成。所有 P0/P1/P2 功能已实现。关键修复：新增 flattenObject/getNestedValue/flattenRows 单元测试（+15 tests，68→83 tests）。非結構化資料 ETL（嵌套 JSON 點記法提取 + flatten transform）已完整測試。68 tests → 83 tests。Build passes (371KB JS, 27KB CSS)。npm audit: 0 vulnerabilities。",
-  "next_action": "项目已完成，所有品质门坎已达标",
-  "updated_at": "2026-04-10T08:43:00Z"
-}
-
-請根據上次狀態和本次發現，決定是繼續當前階段深化，還是推進到下一階段。
-
 你是這個專案的全權負責工程師。執行「品質驅動」的開發模式：分數達標才往前，可回溯低質量。
 
 【環境上下文】
