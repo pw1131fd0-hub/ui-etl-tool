@@ -1,12 +1,9 @@
 {
-  "deployed_at": "2026-04-10T13:04:00.000Z",
-  "method": "npm dev (concurrently) + docker (postgres/redis)",
-  "ports": [3005, 5173, 5433, 6379],
-  "urls": [
-    "http://localhost:3005 (backend API)",
-    "http://localhost:5173 (frontend)"
-  ],
-  "pid_or_container": "backend: 2052764, frontend: 2052765, postgres: etl-postgres, redis: etl-redis",
+  "deployed_at": "2026-04-10T13:35:24.873Z",
+  "method": "npm",
+  "ports": [5173, 3005],
+  "urls": ["http://localhost:5173", "http://localhost:3005"],
+  "pid_or_container": "2052764 (vite), 2052792 (backend)",
   "status": "running",
   "error": null
 }
