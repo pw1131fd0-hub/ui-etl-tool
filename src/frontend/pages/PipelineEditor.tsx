@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Database, Globe, FileText, FileJson, ArrowRight, ArrowLeft, CheckCircle, XCircle, Loader2, Plus, Trash2, ChevronRight, Save, Play, Clock, Filter, SortAsc, SortDesc, LayoutTemplate, Download, HelpCircle } from 'lucide-react'
 import { usePipelineStore } from '../store/pipelineStore'
 import { testSource, testDestination, getPipeline, updatePipeline, triggerRun, createTemplate, exportPipelines } from '../api/pipeline'
 import type { Pipeline } from '../store/pipelineStore'
-import { applyTransform } from '../utils/transformUtils'
+import { applyTransform, computeFlattenedFields } from '../utils/transformUtils'
 import type { FieldMapping, TransformType, FilterOperator } from '../utils/transformUtils'
 import { Tooltip, InlineHint } from '../components/ui/Tooltip'
 
@@ -90,6 +90,14 @@ export default function PipelineEditor() {
   const [flattenNested, setFlattenNested] = useState(false)
 
   const stepIndex = STEPS.findIndex(s => s.key === step)
+
+  // Compute effective source fields based on flattenNested toggle
+  const effectiveSourceFields = useMemo(() => {
+    if (!flattenNested || previewData.length === 0 || sourceFields.length === 0) {
+      return sourceFields
+    }
+    return computeFlattenedFields(sourceFields, previewData)
+  }, [flattenNested, previewData, sourceFields])
 
   useEffect(() => {
     if (!isNew && id) {
@@ -734,7 +742,7 @@ export default function PipelineEditor() {
                     onChange={(e) => setFilterField(e.target.value)}
                   >
                     <option value="">No filter</option>
-                    {sourceFields.map((f) => (
+                    {effectiveSourceFields.map((f) => (
                       <option key={f} value={f}>{f}</option>
                     ))}
                   </select>
@@ -781,7 +789,7 @@ export default function PipelineEditor() {
                     onChange={(e) => setSortField(e.target.value)}
                   >
                     <option value="">No sort</option>
-                    {sourceFields.map((f) => (
+                    {effectiveSourceFields.map((f) => (
                       <option key={f} value={f}>{f}</option>
                     ))}
                   </select>
@@ -840,9 +848,14 @@ export default function PipelineEditor() {
             {/* Field Mappings */}
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
-                <h3 className="text-sm font-medium text-slate-300 mb-4">Source Fields</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-slate-300">Source Fields</h3>
+                  {flattenNested && (
+                    <span className="text-xs px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded">flattened</span>
+                  )}
+                </div>
                 <div className="space-y-2">
-                  {sourceFields.map((field) => {
+                  {effectiveSourceFields.map((field) => {
                     const isMapped = transformMappings.some(m => m.sourceField === field)
                     return (
                       <div key={field} className="flex items-center justify-between px-4 py-3 bg-slate-900/40 rounded-xl">

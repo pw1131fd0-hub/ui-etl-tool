@@ -21,7 +21,7 @@ export interface TransformInput {
 }
 
 // Get nested value using dot notation: getNestedValue(row, "user.profile.name")
-function getNestedValue(obj: Record<string, string>, path: string): string {
+export function getNestedValue(obj: Record<string, string>, path: string): string {
   const parts = path.split('.')
   let current: string | Record<string, string> = obj
   for (const part of parts) {
@@ -32,8 +32,23 @@ function getNestedValue(obj: Record<string, string>, path: string): string {
   return typeof current === 'string' ? current : JSON.stringify(current)
 }
 
+// Compute flattened field names from source fields and preview data
+export function computeFlattenedFields(sourceFields: string[], previewData: string[][]): string[] {
+  if (previewData.length === 0 || sourceFields.length === 0) return sourceFields
+
+  // Build first row as object
+  const firstRow: Record<string, string> = {}
+  sourceFields.forEach((f, i) => {
+    firstRow[f] = previewData[0][i] ?? ''
+  })
+
+  // Flatten and return keys
+  const flattened = flattenRow(firstRow)
+  return Object.keys(flattened)
+}
+
 // Flatten nested JSON objects to dot-notation keys
-function flattenRow(row: Record<string, string>, prefix = ''): Record<string, string> {
+export function flattenRow(row: Record<string, string>, prefix = ''): Record<string, string> {
   const result: Record<string, string> = {}
   for (const [key, value] of Object.entries(row)) {
     const newKey = prefix ? `${prefix}.${key}` : key
