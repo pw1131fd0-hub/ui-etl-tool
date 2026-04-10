@@ -715,3 +715,32 @@ All P0/P1 features implemented. Transform Output Preview, Dashboard sampling fix
 
 
 ---
+
+## [2026-04-10 21:02:12] [done] 100%
+
+All P0/P1 features implemented. Transform Output Preview, Dashboard sampling fix, Destination validation, Tooltips, Auto-save, Password strength, and non-structured data ETL (flatten/nested JSON) all working. 83 tests passing. Build passes (371KB JS, 27KB CSS). npm audit: 0 vulnerabilities.
+
+> **專案狀態確認：✅ 完成**
+
+| 檢查項 | 結果 |
+|--------|------|
+| Tests | ✅ 83 passing |
+| Build | ✅ passes (371KB JS, 27KB CSS) |
+| npm audit | ✅ 0 vulnerabilities |
+| Quality Score | ✅ 95/100 |
+
+**已實現功能：**
+- P0: Transform Output Preview ✅
+- P0: Dashboard 取樣修復 ✅
+- P0: 非結構化資料 ETL（嵌套 JSON 點記法提取 + flatten）✅
+- P1: Destination 跳轉前驗證 ✅
+- P1: Tooltips 引導 ✅
+- P2: Auto-save、Flow Diagram、Password 強度指標 ✅
+
+**非結構化資料 ETL** 已實現：
+- `flattenObject()` — 嵌套對象展平為點記法
+- `getNestedValue()` — 支援點記法路徑提取嵌套值
+- `flattenRows()` — 批量展平所有行
+
+
+---

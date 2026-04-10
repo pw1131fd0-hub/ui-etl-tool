@@ -1,6 +1,6 @@
 {
-  "deployed_at": "2026-04-10T12:32:00.000Z",
-  "method": "npm dev (concurrently) + docker-compose (postgres/redis)",
+  "deployed_at": "2026-04-10T13:04:00.000Z",
+  "method": "npm dev (concurrently) + docker (postgres/redis)",
   "ports": [3005, 5173, 5433, 6379],
   "urls": [
     "http://localhost:3005 (backend API)",
