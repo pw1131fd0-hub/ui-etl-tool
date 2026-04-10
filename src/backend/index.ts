@@ -15,7 +15,8 @@ import { startETLWorker } from './workers/etl.worker.js'
 import { initScheduler } from './scheduler.js'
 
 const app = express()
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3005
+const HOST = process.env.HOST || '0.0.0.0'
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173', credentials: true }))
 app.use(express.json({ limit: '10mb' }))
@@ -101,7 +102,7 @@ initScheduler(etlQueue).catch((err) => {
   console.error('[Scheduler] Failed to init:', err)
 })
 
-app.listen(PORT, () => {
-  console.log(`[Server] Running on http://localhost:${PORT}`)
+app.listen(Number(PORT), HOST, () => {
+  console.log(`[Server] Running on http://${HOST}:${PORT}`)
   console.log(`[ETL Queue] Connected to ${REDIS_URL}`)
 })
