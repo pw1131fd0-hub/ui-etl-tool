@@ -497,3 +497,30 @@ copilot completed
 
 
 ---
+
+## [2026-04-10 14:04:41] [done] 100%
+
+UI ETL Tool 项目已完成。所有 P0/P1/P2 功能已实现：Transform Output Preview、Dashboard 取样修复、Destination 验证、Tooltips 引导、Password 强度指标、Auto-save、Flow Diagram、非结构化数据 ETL（嵌套 JSON 点记法提取 + flatten transform）。83 tests passing。Build passes (371KB JS, 27KB CSS)。npm audit: 0 vulnerabilities。
+
+> **UI ETL Tool 项目状态确认 ✅**
+
+| 检查项 | 结果 |
+|--------|------|
+| Stage | `done` |
+| Quality Score | **100/100** |
+| Build | passes (371KB JS, 27KB CSS) |
+| Tests | **83 passing** |
+| npm audit | 0 vulnerabilities |
+
+**已完成所有 P0/P1/P2 功能：**
+- P0: Transform 步输出 Preview ✅
+- P0: Dashboard 取样修复 ✅
+- P1: Destination 跳转前验证 ✅
+- P1: Tooltips 引导 ✅
+- P2: Auto-save、Flow Diagram、Password 强度指标 ✅
+- **P0: 非结构化资料 ETL（嵌套 JSON 点记法提取 + flatten transform）** ✅
+
+**已实现的非结构化资料 ETL 功能：**
+- `flattenObject()` - 将嵌套对象展平为点记法（如 `user
+
+---
