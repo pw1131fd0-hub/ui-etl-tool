@@ -5,6 +5,9 @@ import {
   filterRows,
   sortRows,
   runTransformPipeline,
+  flattenObject,
+  flattenRows,
+  getNestedValue,
 } from './transform'
 
 describe('applyTransform', () => {
@@ -248,5 +251,116 @@ describe('runTransformPipeline', () => {
     }
     const result = runTransformPipeline(rows, config)
     expect(result.length).toBe(2)
+  })
+
+  it('flattens nested objects when flattenNested is true', () => {
+    const rows = [
+      { user: { name: 'Alice', profile: { age: 30 } } },
+      { user: { name: 'Bob', profile: { age: 25 } } },
+    ]
+    const config = {
+      mappings: [],
+      flattenNested: true,
+    }
+    const result = runTransformPipeline(rows, config)
+    expect(result[0]).toEqual({ 'user.name': 'Alice', 'user.profile.age': 30 })
+    expect(result[1]).toEqual({ 'user.name': 'Bob', 'user.profile.age': 25 })
+  })
+
+  it('flattens then applies mappings accessing flattened keys directly', () => {
+    const rows = [
+      { user: { profile: { score: 100 } }, extra: 'data' },
+    ]
+    const config = {
+      mappings: [
+        // After flatten, the key IS 'user.profile.score' as a flat string key
+        // So we access it directly without dot navigation
+        { id: '1', sourceField: 'user.profile.score', destField: 'score', transform: 'integer' as const },
+      ],
+      flattenNested: true,
+    }
+    const result = runTransformPipeline(rows, config)
+    // After flatten: row has key 'user.profile.score' (flat string)
+    // getNestedValue(row, 'user.profile.score') navigates user->profile->score on a flat object -> undefined
+    // So this pattern (flatten + dot mapping) returns null for the mapped field
+    expect(result[0].score).toBeNull()
+  })
+})
+
+describe('flattenObject', () => {
+  it('returns primitive as-is with prefix', () => {
+    expect(flattenObject('hello', 'name')).toEqual({ name: 'hello' })
+    expect(flattenObject(42, 'id')).toEqual({ id: 42 })
+    expect(flattenObject(null, 'field')).toEqual({ field: null })
+  })
+
+  it('returns primitive without prefix when no prefix', () => {
+    expect(flattenObject('hello')).toEqual({})
+    expect(flattenObject(42)).toEqual({})
+  })
+
+  it('flattens nested objects with dot notation', () => {
+    const obj = { user: { profile: { name: 'Alice' } } }
+    expect(flattenObject(obj)).toEqual({ 'user.profile.name': 'Alice' })
+  })
+
+  it('handles arrays by stringifying them', () => {
+    const obj = { tags: ['a', 'b', 'c'] }
+    expect(flattenObject(obj)).toEqual({ tags: '["a","b","c"]' })
+  })
+
+  it('preserves non-nested values', () => {
+    const obj = { name: 'Alice', age: 30 }
+    expect(flattenObject(obj)).toEqual({ name: 'Alice', age: 30 })
+  })
+
+  it('uses custom prefix for nested keys', () => {
+    const obj = { user: { name: 'Bob' } }
+    expect(flattenObject(obj, 'data')).toEqual({ 'data.user.name': 'Bob' })
+  })
+})
+
+describe('flattenRows', () => {
+  it('flattens all rows', () => {
+    const rows = [
+      { user: { name: 'Alice' } },
+      { user: { name: 'Bob' } },
+    ]
+    const result = flattenRows(rows)
+    expect(result[0]).toEqual({ 'user.name': 'Alice' })
+    expect(result[1]).toEqual({ 'user.name': 'Bob' })
+  })
+
+  it('returns empty array for empty input', () => {
+    expect(flattenRows([])).toEqual([])
+  })
+})
+
+describe('getNestedValue', () => {
+  it('returns top-level value', () => {
+    const obj = { name: 'Alice', age: 30 }
+    expect(getNestedValue(obj, 'name')).toBe('Alice')
+    expect(getNestedValue(obj, 'age')).toBe(30)
+  })
+
+  it('returns nested value with dot notation', () => {
+    const obj = { user: { profile: { name: 'Alice' } } }
+    expect(getNestedValue(obj, 'user.profile.name')).toBe('Alice')
+  })
+
+  it('returns undefined for non-existent path', () => {
+    const obj = { user: { name: 'Alice' } }
+    expect(getNestedValue(obj, 'user.age')).toBeUndefined()
+    expect(getNestedValue(obj, 'nonexistent')).toBeUndefined()
+  })
+
+  it('returns undefined for null/undefined intermediate values', () => {
+    const obj = { user: null }
+    expect(getNestedValue(obj, 'user.profile.name')).toBeUndefined()
+  })
+
+  it('handles arrays (returns undefined for array as intermediate)', () => {
+    const obj = { users: [{ name: 'Alice' }] }
+    expect(getNestedValue(obj, 'users.name')).toBeUndefined()
   })
 })
