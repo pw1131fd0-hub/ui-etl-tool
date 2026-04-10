@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.join(__dirname, 'dist/frontend');
-const PORT = 5173;
+const PORT = 5174;
 const HOST = '0.0.0.0';
 
 const mimeTypes = {
