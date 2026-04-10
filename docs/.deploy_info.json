@@ -1,12 +1,12 @@
 {
-  "deployed_at": "2026-04-10T02:08:00.000Z",
-  "method": "npm background processes (nohup)",
-  "ports": [3000, 3005],
+  "deployed_at": "2026-04-10T03:07:39.000Z",
+  "method": "npm dev (concurrently)",
+  "ports": [3001, 3005],
   "urls": [
-    "http://localhost:3000",
-    "http://localhost:3005"
+    "http://localhost:3001 (frontend - Vite, port 3000 was occupied)",
+    "http://localhost:3005 (backend/api)"
   ],
-  "pid_or_container": "backend: 1691931, frontend: 1692253",
+  "pid_or_container": "concurrently: 1728897, backend tsx: 1728941, vite: 1728949",
   "status": "running",
   "error": null
 }
