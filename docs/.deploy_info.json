@@ -1,9 +1,9 @@
 {
-  "deployed_at": "2026-04-10T07:40:16.511Z",
-  "method": "npm dev (tsx + vite)",
-  "ports": [5173, 3005],
-  "urls": ["http://localhost:5173 (frontend)", "http://localhost:3005 (backend)"],
-  "pid_or_container": "1837432 (vite), 1837461 (tsx backend)",
+  "deployed_at": "2026-04-10T12:06:48.000Z",
+  "method": "npm dev (concurrently)",
+  "ports": [3005, 5173],
+  "urls": ["http://localhost:3005 (backend)", "http://localhost:5173 (frontend)"],
+  "pid_or_container": "2052731 (concurrently), child processes: 2052762,2052764,2052792",
   "status": "running",
   "error": null
 }
