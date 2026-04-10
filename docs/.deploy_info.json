@@ -1,12 +1,12 @@
 {
-  "deployed_at": "2026-04-09T23:32:40.000Z",
-  "method": "npm run dev (concurrently)",
+  "deployed_at": "2026-04-10T02:08:00.000Z",
+  "method": "npm background processes (nohup)",
   "ports": [3000, 3005],
   "urls": [
     "http://localhost:3000",
-    "http://localhost:3005/api"
+    "http://localhost:3005"
   ],
-  "pid_or_container": "1596508 (npm run dev)",
+  "pid_or_container": "backend: 1691931, frontend: 1692253",
   "status": "running",
   "error": null
 }
