@@ -1,9 +1,9 @@
 {
-  "deployed_at": "2026-04-10T06:07:06.992Z",
-  "method": "npm dev (concurrently: vite frontend + tsx backend)",
+  "deployed_at": "2026-04-10T07:40:16.511Z",
+  "method": "npm dev (tsx + vite)",
   "ports": [5173, 3005],
-  "urls": ["http://localhost:5173", "http://localhost:3005"],
-  "pid_or_container": "via concurrently",
+  "urls": ["http://localhost:5173 (frontend)", "http://localhost:3005 (backend)"],
+  "pid_or_container": "1837432 (vite), 1837461 (tsx backend)",
   "status": "running",
   "error": null
 }
